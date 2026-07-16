@@ -1,0 +1,90 @@
+﻿Connexion SSH à ritchie...
+Téléversé : nljtae_hyperbench.py
+Téléversé : run_nljtae_hyperbench.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=5761
+
+Job 5761 soumis. Surveillance...
+w
+Job terminé (F).
+
+=== LOG ===
+Étude de faisabilité HyperBench — NL-JTAE
+chimay33
+Thu Jul  9 15:07:03 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.58.03              Driver Version: 595.58.03      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:41:00.0 Off |                    0 |
+| N/A   28C    P0             51W /  400W |       0MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+=== ERREURS ===
+usion/run_nljtae_hyperbench.py", line 19, in <module>
+    from hyperbench import BenchmarkConfig, DegradationSpec, run_benchmark
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/__init__.py", line 7, in <module>
+    from .adapters import (
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/adapters/__init__.py", line 6, in <module>
+    from .callable import CallableAdapter
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/adapters/callable.py", line 11, in <module>
+    from hyperbench.utils import numpy_prediction_to_hwc
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/utils/__init__.py", line 42, in <module>
+    from .visualization import (
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/utils/visualization.py", line 17, in <module>
+    from hyperbench.degradations import AVAILABLE_PSFS, make_psf
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/degradations/__init__.py", line 30, in <module>
+    from .spatial import apply_psf, downsample_image, spatial_degradation
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/degradations/spatial.py", line 7, in <module>
+    import cv2
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/cv2/__init__.py", line 181, in <module>
+    bootstrap()
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/cv2/__init__.py", line 153, in bootstrap
+    native_module = importlib.import_module("cv2")
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+AttributeError: _ARRAY_API not found
+Traceback (most recent call last):
+  File "/nfs/home/lisic/hbouda/tucker_fusion/run_nljtae_hyperbench.py", line 19, in <module>
+    from hyperbench import BenchmarkConfig, DegradationSpec, run_benchmark
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/__init__.py", line 7, in <module>
+    from .adapters import (
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/adapters/__init__.py", line 6, in <module>
+    from .callable import CallableAdapter
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/adapters/callable.py", line 11, in <module>
+    from hyperbench.utils import numpy_prediction_to_hwc
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/utils/__init__.py", line 42, in <module>
+    from .visualization import (
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/utils/visualization.py", line 17, in <module>
+    from hyperbench.degradations import AVAILABLE_PSFS, make_psf
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/degradations/__init__.py", line 30, in <module>
+    from .spatial import apply_psf, downsample_image, spatial_degradation
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/hyperbench/degradations/spatial.py", line 7, in <module>
+    import cv2
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/cv2/__init__.py", line 181, in <module>
+    bootstrap()
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/cv2/__init__.py", line 153, in bootstrap
+    native_module = importlib.import_module("cv2")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: numpy.core.multiarray failed to import
+
+échec : results_nljtae_fast.csv ([Errno 2] No such file)
+ok : results_tucker_fast.csv
+ok : results_bicubic_fast.csv
+Terminé.

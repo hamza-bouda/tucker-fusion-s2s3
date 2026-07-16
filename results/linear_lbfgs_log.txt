@@ -1,0 +1,45 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : run_linear_final.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=7065
+
+Job 7065 soumis. Surveillance...
+python.exe : Socket exception: Une connexion existante a d� �tre ferm�e par l�h�te distant (10054)
+Au caractère Ligne:1 : 54
++ ... er_fusion"; & ".\tucker_env\Scripts\python.exe" paper_run_linear_fina ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Socket exceptio...distant (10054):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Traceback (most recent call last):
+  File "C:\Users\hamza\Desktop\tucker_fusion\paper_run_linear_final_on_ritchie.py", line 119, in <module>
+    main()
+  File "C:\Users\hamza\Desktop\tucker_fusion\paper_run_linear_final_on_ritchie.py", line 79, in main
+    _, stdout, _ = ssh.exec_command(f"oarstat -j {job_id}")
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\client.py", line 548, in 
+exec_command
+    chan = self._transport.open_session(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\transport.py", line 921, in 
+open_session
+    return self.open_channel(
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\transport.py", line 1052, in 
+open_channel
+    raise e
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\transport.py", line 2045, in run
+    ptype, m = self.packetizer.read_message()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\packet.py", line 496, in 
+read_message
+    header = self.read_all(self.__block_size_in, check_rekey=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hamza\Desktop\tucker_fusion\tucker_env\Lib\site-packages\paramiko\packet.py", line 322, in read_all
+    x = self.__socket.recv(n)
+        ^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] Une connexion existante a d� �tre ferm�e par l�h�te distant
+w.......................

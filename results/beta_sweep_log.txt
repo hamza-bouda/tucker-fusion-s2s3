@@ -1,0 +1,8 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=7380
+
+Job 7380 soumis. Surveillance...

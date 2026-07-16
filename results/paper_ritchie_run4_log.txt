@@ -1,0 +1,227 @@
+﻿Connexion SSH à ritchie.univ-littoral.fr...
+Téléversement de paper_common.py...
+Téléversement de paper_v0_tucker_als.py...
+Téléversement de paper_v1_ctae.py...
+Téléversement de paper_v4_msnljtae.py...
+Téléversement de paper_benchmark.py...
+PaviaU.mat déjà présent sur le serveur.
+Soumission du job OAR...
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=5554
+
+Job 5554 soumis. Surveillance (10 s)...
+w...........
+Job 5554 terminé avec le statut T.
+
+=== LOG DU JOB ===
+Démarrage du benchmark article (v0 / v1 / v4 selfsup / v4 oracle)
+chimay32
+Thu Jul  9 10:48:15 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.58.03              Driver Version: 595.58.03      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          On  |   00000000:27:00.0 Off |                    0 |
+| N/A   44C    P0             35W /  250W |       0MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Scène : (240, 240, 103) | flux natifs : (240, 240, 4), (120, 120, 6), (40, 40, 3), (8, 8, 21)
+
+======================================================================
+ v0 — Tucker ALS couplé parcimonieux (linéaire)
+======================================================================
+  beta = 5.678e-05 | ranks = (48, 48, 12)
+  iter 01/60 | loss 2.608e+04 | sparsité G 0.0%
+  iter 02/60 | loss 2.469e+04 | sparsité G 0.0%
+  iter 03/60 | loss 2.339e+04 | sparsité G 0.0%
+  iter 04/60 | loss 2.216e+04 | sparsité G 0.0%
+  iter 05/60 | loss 2.099e+04 | sparsité G 0.0%
+  iter 06/60 | loss 1.990e+04 | sparsité G 0.0%
+  iter 07/60 | loss 1.886e+04 | sparsité G 0.0%
+  iter 08/60 | loss 1.788e+04 | sparsité G 0.0%
+  iter 09/60 | loss 1.695e+04 | sparsité G 0.0%
+  iter 10/60 | loss 1.606e+04 | sparsité G 0.0%
+  iter 11/60 | loss 1.522e+04 | sparsité G 0.0%
+  iter 12/60 | loss 1.443e+04 | sparsité G 0.0%
+  iter 13/60 | loss 1.367e+04 | sparsité G 0.0%
+  iter 14/60 | loss 1.295e+04 | sparsité G 0.0%
+  iter 15/60 | loss 1.226e+04 | sparsité G 0.0%
+  iter 16/60 | loss 1.160e+04 | sparsité G 0.0%
+  iter 17/60 | loss 1.097e+04 | sparsité G 0.0%
+  iter 18/60 | loss 1.037e+04 | sparsité G 0.0%
+  iter 19/60 | loss 9.800e+03 | sparsité G 0.0%
+  iter 20/60 | loss 9.253e+03 | sparsité G 0.0%
+  iter 21/60 | loss 8.730e+03 | sparsité G 0.0%
+  iter 22/60 | loss 8.231e+03 | sparsité G 0.0%
+  iter 23/60 | loss 7.754e+03 | sparsité G 0.0%
+  iter 24/60 | loss 7.300e+03 | sparsité G 0.0%
+  iter 25/60 | loss 6.867e+03 | sparsité G 0.0%
+  iter 26/60 | loss 6.454e+03 | sparsité G 0.0%
+  iter 27/60 | loss 6.062e+03 | sparsité G 0.0%
+  iter 28/60 | loss 5.690e+03 | sparsité G 0.0%
+  iter 29/60 | loss 5.337e+03 | sparsité G 0.0%
+  iter 30/60 | loss 5.003e+03 | sparsité G 0.0%
+  iter 31/60 | loss 4.688e+03 | sparsité G 0.0%
+  iter 32/60 | loss 4.390e+03 | sparsité G 0.0%
+  iter 33/60 | loss 4.110e+03 | sparsité G 0.0%
+  iter 34/60 | loss 3.847e+03 | sparsité G 0.0%
+  iter 35/60 | loss 3.600e+03 | sparsité G 0.0%
+  iter 36/60 | loss 3.368e+03 | sparsité G 0.0%
+  iter 37/60 | loss 3.152e+03 | sparsité G 0.0%
+  iter 38/60 | loss 2.951e+03 | sparsité G 0.0%
+  iter 39/60 | loss 2.763e+03 | sparsité G 0.0%
+  iter 40/60 | loss 2.589e+03 | sparsité G 0.0%
+  iter 41/60 | loss 2.427e+03 | sparsité G 0.0%
+  iter 42/60 | loss 2.276e+03 | sparsité G 0.0%
+  iter 43/60 | loss 2.138e+03 | sparsité G 0.0%
+  iter 44/60 | loss 2.009e+03 | sparsité G 0.0%
+  iter 45/60 | loss 1.891e+03 | sparsité G 0.0%
+  iter 46/60 | loss 1.782e+03 | sparsité G 0.0%
+  iter 47/60 | loss 1.681e+03 | sparsité G 0.0%
+  iter 48/60 | loss 1.589e+03 | sparsité G 0.0%
+  iter 49/60 | loss 1.504e+03 | sparsité G 0.0%
+  iter 50/60 | loss 1.427e+03 | sparsité G 0.0%
+  iter 51/60 | loss 1.355e+03 | sparsité G 0.0%
+  iter 52/60 | loss 1.290e+03 | sparsité G 0.0%
+  iter 53/60 | loss 1.230e+03 | sparsité G 0.0%
+  iter 54/60 | loss 1.175e+03 | sparsité G 0.0%
+  iter 55/60 | loss 1.125e+03 | sparsité G 0.0%
+  iter 56/60 | loss 1.079e+03 | sparsité G 0.0%
+  iter 57/60 | loss 1.037e+03 | sparsité G 0.0%
+  iter 58/60 | loss 9.983e+02 | sparsité G 0.0%
+  iter 59/60 | loss 9.632e+02 | sparsité G 0.0%
+  iter 60/60 | loss 9.310e+02 | sparsité G 0.0%
+v0 Tucker ALS                | PSNR  22.03 dB | SAM 13.26° | ERGAS  1.0899 | SSIM    nan | UIQI 0.8504 | Sp(G)   0.0%
+
+======================================================================
+ v1 — CTAE couplé (auto-supervisé)
+======================================================================
+  ep 0001 | loss 4.939e-01
+  ep 0100 | loss 4.899e-02
+  ep 0200 | loss 3.581e-02
+  ep 0300 | loss 2.590e-02
+  ep 0400 | loss 2.225e-02
+  ep 0500 | loss 2.001e-02
+  ep 0600 | loss 1.768e-02
+  ep 0700 | loss 1.627e-02
+  ep 0800 | loss 1.544e-02
+  ep 0900 | loss 1.390e-02
+  ep 1000 | loss 1.393e-02
+  ep 1100 | loss 1.219e-02
+  ep 1200 | loss 1.188e-02
+  ep 1300 | loss 1.165e-02
+  ep 1400 | loss 1.140e-02
+  ep 1500 | loss 1.126e-02
+  ep 1600 | loss 1.118e-02
+  ep 1700 | loss 1.103e-02
+  ep 1800 | loss 1.095e-02
+  ep 1900 | loss 1.089e-02
+  ep 2000 | loss 1.082e-02
+  ep 2100 | loss 1.077e-02
+  ep 2200 | loss 1.071e-02
+  ep 2300 | loss 1.066e-02
+  ep 2400 | loss 1.061e-02
+  ep 2500 | loss 1.058e-02
+  ep 2600 | loss 1.048e-02
+  ep 2700 | loss 1.045e-02
+  ep 2800 | loss 1.042e-02
+  ep 2900 | loss 1.039e-02
+  ep 3000 | loss 1.036e-02
+  ep 3100 | loss 1.033e-02
+  ep 3200 | loss 1.031e-02
+  ep 3300 | loss 1.027e-02
+  ep 3400 | loss 1.023e-02
+  ep 3500 | loss 1.021e-02
+  ep 3600 | loss 1.018e-02
+  ep 3700 | loss 1.013e-02
+  ep 3800 | loss 1.012e-02
+  ep 3900 | loss 1.007e-02
+  ep 4000 | loss 1.004e-02
+  ep 4100 | loss 1.002e-02
+  ep 4200 | loss 9.969e-03
+  ep 4300 | loss 9.952e-03
+  ep 4400 | loss 9.935e-03
+  ep 4500 | loss 9.918e-03
+  ep 4600 | loss 9.900e-03
+  ep 4700 | loss 9.882e-03
+  ep 4800 | loss 9.863e-03
+  ep 4900 | loss 9.843e-03
+  ep 5000 | loss 9.824e-03
+  ep 5100 | loss 9.808e-03
+  ep 5200 | loss 9.800e-03
+  ep 5300 | loss 9.767e-03
+  ep 5400 | loss 9.745e-03
+  ep 5500 | loss 9.727e-03
+  ep 5600 | loss 9.705e-03
+  ep 5700 | loss 9.684e-03
+  ep 5800 | loss 9.666e-03
+  ep 5900 | loss 9.642e-03
+  ep 6000 | loss 9.633e-03
+v1 CTAE                      | PSNR  22.47 dB | SAM  9.05° | ERGAS  1.0156 | SSIM    nan | UIQI 0.8043 | Sp(G)   3.1%
+
+======================================================================
+ v4 — MS-NL-JTAE multi-input natif (auto-supervisé)
+======================================================================
+  MS-NL-JTAE : 2.42 M paramètres | R3=64 | cœur 8×8×64 | supervisé=False
+  ep 0001 | loss 7.000e-01 | sparsité G 0.0%
+  ep 0100 | loss 1.626e-02 | sparsité G 0.0%
+  ep 0200 | loss 9.401e-03 | sparsité G 3.4%
+  ep 0300 | loss 7.992e-03 | sparsité G 3.1%
+  ep 0400 | loss 7.439e-03 | sparsité G 3.1%
+  ep 0500 | loss 7.405e-03 | sparsité G 3.1%
+  ep 0600 | loss 6.607e-03 | sparsité G 3.1%
+  ep 0700 | loss 6.276e-03 | sparsité G 3.1%
+  ep 0800 | loss 7.407e-03 | sparsité G 3.1%
+  [early stopping] époque 811
+v4 MS-NL-JTAE (selfsup)      | PSNR  20.34 dB | SAM 19.01° | ERGAS  1.3577 | SSIM    nan | UIQI 0.8531 | Sp(G)   3.1%
+
+======================================================================
+ v4 — MS-NL-JTAE (oracle supervisé, borne supérieure)
+======================================================================
+  MS-NL-JTAE : 2.42 M paramètres | R3=64 | cœur 8×8×64 | supervisé=True
+  ep 0001 | loss 7.871e-01 | sparsité G 0.0%
+  ep 0100 | loss 2.920e-02 | sparsité G 0.3%
+  ep 0200 | loss 2.191e-02 | sparsité G 9.8%
+  ep 0300 | loss 1.586e-02 | sparsité G 6.2%
+  ep 0400 | loss 1.485e-02 | sparsité G 6.2%
+  ep 0500 | loss 1.622e-02 | sparsité G 6.2%
+  ep 0600 | loss 1.432e-02 | sparsité G 6.2%
+  ep 0700 | loss 1.616e-02 | sparsité G 6.2%
+  ep 0800 | loss 1.245e-02 | sparsité G 6.2%
+  ep 0900 | loss 1.368e-02 | sparsité G 6.2%
+  ep 1000 | loss 1.660e-02 | sparsité G 6.2%
+  ep 1100 | loss 1.397e-02 | sparsité G 6.2%
+  [early stopping] époque 1170
+v4 MS-NL-JTAE (oracle)       | PSNR  29.49 dB | SAM  4.09° | ERGAS  0.4893 | SSIM    nan | UIQI 0.9647 | Sp(G)   6.2%
+
+
+| Méthode | PSNR (dB) ↑ | SAM (°) ↓ | ERGAS ↓ | SSIM ↑ | UIQI ↑ | Sp(G) % | t (s) |
+|---|---|---|---|---|---|---|---|
+| Tucker ALS couplé (linéaire) | 22.03 | 13.26 | 1.0899 | nan | 0.8504 | 0.0 | 7 |
+| CTAE couplé | 22.47 | 9.05 | 1.0156 | nan | 0.8043 | 3.1 | 75 |
+| MS-NL-JTAE (proposé, auto-sup.) | 20.34 | 19.01 | 1.3577 | nan | 0.8531 | 3.1 | 10 |
+| MS-NL-JTAE (oracle supervisé) | 29.49 | 4.09 | 0.4893 | nan | 0.9647 | 6.2 | 14 |
+
+Benchmark terminé — résultats dans results/paper_benchmark.json
+
+
+Rapatriement des résultats...
+  ok : results/paper_benchmark.json
+  ok : results/paper_benchmark_table.md
+  ok : results/paper_v0_reconstruction.tif
+  ok : results/paper_v1_reconstruction.tif
+  ok : results/paper_v4_selfsup_reconstruction.tif
+  ok : results/paper_v4_oracle_reconstruction.tif
+Terminé.

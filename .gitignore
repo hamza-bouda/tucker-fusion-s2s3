@@ -1,0 +1,28 @@
+# Identifiants — ne JAMAIS committer
+ritchie_secret.py
+
+# Environnements Python
+tucker_env/
+env_fusion/
+__pycache__/
+*.pyc
+
+# Données lourdes et binaires de sortie
+data/
+*.mat
+*.tif
+*.pth
+*.onnx
+
+# Code de l'encadrante (non publiable ici)
+HSI-Fusion-main/
+
+# LaTeX — fichiers intermédiaires
+*.aux
+*.out
+*.toc
+rapport/compile.log
+
+# Divers
+*.log
+.ipynb_checkpoints/

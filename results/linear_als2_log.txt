@@ -1,0 +1,50 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : run_linear_final.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=7048
+
+Job 7048 soumis. Surveillance...
+w................................................................................
+Job terminé (T).
+
+=== LOG (fin) ===
+Métriques complètes modèles linéaires — Pavia + Indian Pines
+chimay33
+Rangs retenus : (30, 30, 10) (PSNR sweep = 19.33 dB)
+
+=== [pavia] als ===
+  > PSNR 12.84 | SAM 20.45 | Q2n 0.045 | ERGAS 19.62
+
+=== [indianpines] als ===
+  > PSNR 10.17 | SAM 22.80 | Q2n 0.063 | ERGAS 16.03
+
+| Méthode | IP PSNR | IP SAM | IP Q2n | IP ERGAS | Pavia PSNR | Pavia SAM | Pavia Q2n | Pavia ERGAS |
+|---|---|---|---|---|---|---|---|---|
+| ALS + FISTA | 10.17 | 22.80 | 0.063 | 16.03 | 12.84 | 20.45 | 0.045 | 19.62 |
+| Adam + prox (tuned) | 18.16 | 11.96 | 0.778 | 6.13 | 19.07 | 10.32 | 0.578 | 9.46 |
+| Adam + L1 (tuned) | — | — | — | — | 19.07 | 10.32 | 0.578 | 9.46 |
+| SGD + prox | — | — | — | — | 18.74 | 10.57 | 0.520 | 10.00 |
+| LBFGS + prox | — | — | — | — | — | — | — | — |
+
+ok : results_final_linear_table.md
+
+ok : results_final_linear_indianpines_adam_prox_fast.csv
+ok : results_final_linear_indianpines_als_fast.csv
+ok : results_final_linear_pavia_adam_l1_fast.csv
+ok : results_final_linear_pavia_adam_prox_fast.csv
+ok : results_final_linear_pavia_als_fast.csv
+ok : results_final_linear_pavia_lbfgs_prox_fast.csv
+ok : results_final_linear_pavia_sgd_prox_fast.csv
+ok : results_final_linear_table.md
+ok : results_linear_ranks_20_20_10_fast.csv
+ok : results_linear_ranks_30_30_10_fast.csv
+ok : results_linear_tuning_lr_1e-2_const_fast.csv
+ok : results_linear_tuning_lr_1e-2_cos_fast.csv
+ok : results_linear_tuning_lr_3e-2_const_fast.csv
+ok : results_linear_tuning_lr_3e-2_cos_fast.csv
+ok : results_linear_tuning_lr_3e-3_const_fast.csv
+ok : results_linear_tuning_lr_3e-3_cos_fast.csv
+Terminé.

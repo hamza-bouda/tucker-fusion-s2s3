@@ -1,0 +1,91 @@
+﻿Connexion SSH à ritchie...
+Téléversé : nljtae_hyperbench.py
+Téléversé : run_nljtae_hyperbench.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=5762
+
+Job 5762 soumis. Surveillance...
+w.......................................
+Job terminé (T).
+
+=== LOG ===
+Étude de faisabilité HyperBench — NL-JTAE
+chimay33
+Thu Jul  9 15:09:25 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.58.03              Driver Version: 595.58.03      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:41:00.0 Off |                    0 |
+| N/A   28C    P0             51W /  400W |       0MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+=== NL-JTAE x HyperBench [fast] — epochs=3000 ===
+
+========================================================================
+  COMPARATIF — moyennes sur tous les cas (PSF × ratios)
+========================================================================
+  Méthode                     PSNR       SAM     ERGAS      SSIM
+  ------------------------------------------------------------------
+
+=== ERREURS ===
+ia.mat' with key 'paviaU'
+[2026-07-09 15:09:34] INFO | hyperbench | Generating benchmark cases from config.
+[2026-07-09 15:09:34] INFO | hyperbench | Initialized benchmark CSV at 'results_nljtae_fast.csv'.
+[2026-07-09 15:09:34] INFO | hyperbench | Starting benchmark run with 6 case(s) using adapter 'NL-JTAE (proposé)'.
+[2026-07-09 15:09:34] INFO | hyperbench | Starting case_00000 | psf=gaussian, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:10:49] ERROR | hyperbench | Failed case_00000 after 75.600s | prediction shape (608, 340, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:10:49] INFO | hyperbench | Starting case_00001 | psf=gaussian, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:11:13] ERROR | hyperbench | Failed case_00001 after 23.443s | prediction shape (608, 336, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:11:13] INFO | hyperbench | Starting case_00002 | psf=airy, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:12:30] ERROR | hyperbench | Failed case_00002 after 77.493s | prediction shape (608, 340, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:12:30] INFO | hyperbench | Starting case_00003 | psf=airy, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:13:46] ERROR | hyperbench | Failed case_00003 after 75.288s | prediction shape (608, 336, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:13:46] INFO | hyperbench | Starting case_00004 | psf=sinc, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:15:00] ERROR | hyperbench | Failed case_00004 after 74.797s | prediction shape (608, 340, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:15:00] INFO | hyperbench | Starting case_00005 | psf=sinc, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:16:13] ERROR | hyperbench | Failed case_00005 after 72.888s | prediction shape (608, 336, 103) does not match gt_hsi shape (610, 340, 103)
+[2026-07-09 15:16:13] INFO | hyperbench | Benchmark results were incrementally written to 'results_nljtae_fast.csv'.
+[2026-07-09 15:16:13] INFO | hyperbench | Benchmark run complete. total=6 success=0 failed=6
+Traceback (most recent call last):
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'PSNR'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/nfs/home/lisic/hbouda/tucker_fusion/run_nljtae_hyperbench.py", line 65, in <module>
+    vals = "".join(f"{df[m].mean():10.4f}" for m in ['PSNR', 'SAM', 'ERGAS', 'SSIM'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/lisic/hbouda/tucker_fusion/run_nljtae_hyperbench.py", line 65, in <genexpr>
+    vals = "".join(f"{df[m].mean():10.4f}" for m in ['PSNR', 'SAM', 'ERGAS', 'SSIM'])
+                      ~~^^^
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/pandas/core/frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/home/lisic/hbouda/.conda/envs/tucker/lib/python3.11/site-packages/pandas/core/indexes/base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'PSNR'
+
+ok : results_nljtae_fast.csv
+ok : results_tucker_fast.csv
+ok : results_bicubic_fast.csv
+Terminé.

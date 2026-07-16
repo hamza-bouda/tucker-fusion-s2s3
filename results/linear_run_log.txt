@@ -1,0 +1,41 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+Job adam_prox soumis : 6630
+Job adam_l1 soumis : 6631
+Job sgd_prox soumis : 6632
+Surveillance des jobs : {'adam_prox': '6630', 'adam_l1': '6631', 'sgd_prox': '6632'}
+.................
+[adam_prox] terminé (T).
+.
+[adam_l1] terminé (T).
+
+[sgd_prox] terminé (T).
+
+=== LOG adam_prox (fin) ===
+Modèle linéaire Tucker — variante adam_prox
+chimay33
+=== Tucker linéaire [adam_prox] x HyperBench — iters=3000 ===
+ok : results_linear_adam_prox_fast.csv + historiques (6 cas)
+
+ok : results_linear_adam_prox_fast.csv
+ok : results_linear_adam_prox_hist.json
+
+=== LOG adam_l1 (fin) ===
+Modèle linéaire Tucker — variante adam_l1
+chimay33
+=== Tucker linéaire [adam_l1] x HyperBench — iters=3000 ===
+ok : results_linear_adam_l1_fast.csv + historiques (6 cas)
+
+ok : results_linear_adam_l1_fast.csv
+ok : results_linear_adam_l1_hist.json
+
+=== LOG sgd_prox (fin) ===
+Modèle linéaire Tucker — variante sgd_prox
+chimay33
+=== Tucker linéaire [sgd_prox] x HyperBench — iters=3000 ===
+ok : results_linear_sgd_prox_fast.csv + historiques (6 cas)
+
+ok : results_linear_sgd_prox_fast.csv
+ok : results_linear_sgd_prox_hist.json
+Terminé.

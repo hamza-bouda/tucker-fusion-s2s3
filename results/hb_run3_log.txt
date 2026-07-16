@@ -1,0 +1,84 @@
+﻿Connexion SSH à ritchie...
+Téléversé : nljtae_hyperbench.py
+Téléversé : run_nljtae_hyperbench.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=5766
+
+Job 5766 soumis. Surveillance...
+w.....................................................
+Job terminé (T).
+
+=== LOG ===
+Étude de faisabilité HyperBench — NL-JTAE
+chimay33
+Thu Jul  9 15:17:29 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 595.58.03              Driver Version: 595.58.03      CUDA Version: 13.2     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:41:00.0 Off |                    0 |
+| N/A   29C    P0             51W /  400W |       0MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+=== NL-JTAE x HyperBench [fast] — epochs=3000 ===
+
+========================================================================
+  COMPARATIF — moyennes sur tous les cas (PSF × ratios)
+========================================================================
+  Méthode                     PSNR       SAM     ERGAS      SSIM
+  ------------------------------------------------------------------
+  NL-JTAE (proposé)        22.7688    7.6638    6.3401    0.8227
+  G-STEREO-Tucker          13.6802   20.0743   18.1946    0.1239
+  Bicubic                  19.7638    8.4339    9.2423    0.5201
+
+  Détail par ratio :
+  -- ratio ×4
+    NL-JTAE (proposé)      23.0393    7.1689    6.1390    0.8248
+    G-STEREO-Tucker        13.5919   18.8676   18.6195    0.1183
+    Bicubic                20.7812    7.5057    8.1616    0.6283
+  -- ratio ×8
+    NL-JTAE (proposé)      22.4984    8.1588    6.5413    0.8206
+    G-STEREO-Tucker        13.7686   21.2810   17.7698    0.1294
+    Bicubic                18.7463    9.3621   10.3231    0.4118
+
+  Détail par PSF (PSNR / SAM) :
+  gaussian      NL-JTAE: 22.86/8.16  G-STEREO-Tucker: 14.39/21.86  Bicubic: 19.07/8.96
+  airy          NL-JTAE: 24.20/6.63  G-STEREO-Tucker: 13.09/17.56  Bicubic: 20.28/7.84
+  sinc          NL-JTAE: 21.25/8.20  G-STEREO-Tucker: 13.57/20.80  Bicubic: 19.94/8.51
+
+=== ERREURS ===
+[2026-07-09 15:17:36] INFO | hyperbench | Loading scene from 'pavia.mat' with key 'paviaU'
+[2026-07-09 15:17:36] INFO | hyperbench | Generating benchmark cases from config.
+[2026-07-09 15:17:36] INFO | hyperbench | Initialized benchmark CSV at 'results_nljtae_fast.csv'.
+[2026-07-09 15:17:36] INFO | hyperbench | Starting benchmark run with 6 case(s) using adapter 'NL-JTAE (proposé)'.
+[2026-07-09 15:17:36] INFO | hyperbench | Starting case_00000 | psf=gaussian, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:19:14] INFO | hyperbench | Completed case_00000 successfully in 97.113s | PSNR=24.416753, SAM=6.917514, ERGAS=5.012475, SSIM=0.875909
+[2026-07-09 15:19:14] INFO | hyperbench | Starting case_00001 | psf=gaussian, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:19:58] INFO | hyperbench | Completed case_00001 successfully in 44.503s | PSNR=21.305723, SAM=9.409818, ERGAS=7.437142, SSIM=0.775773
+[2026-07-09 15:19:58] INFO | hyperbench | Starting case_00002 | psf=airy, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:21:48] INFO | hyperbench | Completed case_00002 successfully in 109.489s | PSNR=24.279267, SAM=6.274890, ERGAS=5.301122, SSIM=0.871481
+[2026-07-09 15:21:48] INFO | hyperbench | Starting case_00003 | psf=airy, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:23:23] INFO | hyperbench | Completed case_00003 successfully in 94.964s | PSNR=24.111112, SAM=6.978480, ERGAS=5.370688, SSIM=0.878030
+[2026-07-09 15:23:23] INFO | hyperbench | Starting case_00004 | psf=sinc, sigma=3.4, kernel=7, r=4, c=4, snr_spatial=35.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:25:08] INFO | hyperbench | Completed case_00004 successfully in 105.144s | PSNR=20.421782, SAM=8.314251, ERGAS=8.103258, SSIM=0.726933
+[2026-07-09 15:25:08] INFO | hyperbench | Starting case_00005 | psf=sinc, sigma=3.4, kernel=7, r=8, c=4, snr_spatial=30.0, snr_spectral=40.0, seed=42
+[2026-07-09 15:26:40] INFO | hyperbench | Completed case_00005 successfully in 92.050s | PSNR=22.078293, SAM=8.088105, ERGAS=6.816193, SSIM=0.807869
+[2026-07-09 15:26:40] INFO | hyperbench | Benchmark results were incrementally written to 'results_nljtae_fast.csv'.
+[2026-07-09 15:26:40] INFO | hyperbench | Benchmark run complete. total=6 success=6 failed=0
+
+ok : results_nljtae_fast.csv
+ok : results_tucker_fast.csv
+ok : results_bicubic_fast.csv
+Terminé.

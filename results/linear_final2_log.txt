@@ -1,0 +1,8 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : run_linear_final.py
+
+STDERR: /!\ Invalid stdout file name (bad character)
+
+Erreur : job non soumis.

@@ -1,0 +1,28 @@
+﻿Connexion SSH à ritchie...
+Téléversé : linear_tucker_torch.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : run_linear_final.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=6939
+
+Job 6939 soumis. Surveillance...
+w................................................................................
+Job terminé (E).
+
+=== LOG (fin) ===
+Métriques complètes modèles linéaires — Pavia + Indian Pines
+chimay32
+Rangs retenus : (30, 30, 10) (PSNR sweep = 19.33 dB)
+
+=== [pavia] als ===
+
+ok : results_linear_ranks_20_20_10_fast.csv
+ok : results_linear_ranks_30_30_10_fast.csv
+ok : results_linear_tuning_lr_1e-2_const_fast.csv
+ok : results_linear_tuning_lr_1e-2_cos_fast.csv
+ok : results_linear_tuning_lr_3e-2_const_fast.csv
+ok : results_linear_tuning_lr_3e-2_cos_fast.csv
+ok : results_linear_tuning_lr_3e-3_const_fast.csv
+ok : results_linear_tuning_lr_3e-3_cos_fast.csv
+Terminé.

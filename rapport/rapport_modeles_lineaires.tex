@@ -1,0 +1,765 @@
+\documentclass[11pt,a4paper]{article}
+
+% ─────────────────────────── Préambule ───────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+% pseudo-codes composés en environnements standard (pas de dépendance
+% à algorithm/algpseudocode, absents de certaines installations)
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remarque}
+\newtheorem{definition}{Définition}
+
+% Notations
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\T}[1]{\bm{\mathcal{#1}}}          % tenseur
+\newcommand{\M}[1]{\bm{#1}}                     % matrice
+\newcommand{\norf}[1]{\left\lVert #1 \right\rVert_F}
+\newcommand{\noru}[1]{\left\lVert #1 \right\rVert_1}
+\newcommand{\prox}{\operatorname{prox}}
+\newcommand{\st}{\operatorname{S}}              % seuillage doux
+\newcommand{\unfold}[2]{\M{#1}_{(#2)}}
+
+\title{\textbf{Modèles linéaires de fusion hyperspectrale par décomposition de
+Tucker couplée à c\oe ur parcimonieux :\\ architectures et algorithmes
+d'optimisation}\\[1ex]
+\large Étude comparative de cinq stratégies de résolution du même problème
+inverse}
+
+\author{Hamza BOUDA\\
+\small Stage Assistant Ingénieur — Laboratoire LISIC, ULCO\\
+\small Encadrement : projet fusion Sentinel-2 / Sentinel-3}
+
+\date{Juillet 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Nous décrivons en détail la famille de modèles \emph{linéaires} développée pour
+la fusion d'images hyperspectrale/multispectrale (HSI--MSI), fondée sur une
+décomposition de Tucker couplée dont le c\oe ur est contraint à la parcimonie.
+Le modèle génératif est unique~; ce qui distingue les cinq architectures
+présentées est la \emph{stratégie d'optimisation} : (i)~moindres carrés
+alternés avec étape proximale accélérée (ALS+FISTA), (ii)~gradient adaptatif
+avec opérateur proximal découplé (Adam+prox), (iii)~gradient adaptatif avec
+pénalité $\ell_1$ sous-différentiée (Adam+$\ell_1$), (iv)~gradient stochastique
+à inertie avec étape proximale (SGD+prox), et (v)~quasi-Newton à mémoire
+limitée avec étape proximale (LBFGS+prox). Pour chaque variante nous donnons
+les équations de mise à jour complètes, les garanties théoriques, le coût par
+itération et le traitement exact ou approché de la contrainte de parcimonie.
+Nous montrons que ces choix, à modèle strictement identique, induisent des
+comportements très différents~: l'écart entre solveurs peut dépasser l'écart
+entre classes de modèles, ce qui impose de séparer soigneusement
+\og{}contribution du modèle\fg{} et \og{}contribution de l'optimiseur\fg{} dans
+toute étude comparative.
+\end{abstract}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Introduction}
+% ══════════════════════════════════════════════════════════════════
+
+La fusion HSI--MSI vise à reconstruire une image de haute résolution à la fois
+spatiale et spectrale, la \emph{super-resolution image} (SRI)
+$\T{S}\in\R^{H\times W\times C}$, à partir de deux observations dégradées et
+complémentaires~:
+\begin{itemize}
+  \item une image \textbf{hyperspectrale basse résolution spatiale}
+  $\T{H}\in\R^{h\times w\times C}$ (riche spectralement, $C$ bandes, grille
+  grossière $h\times w$ avec $H/h = W/w = r$)~;
+  \item une image \textbf{multispectrale haute résolution spatiale}
+  $\T{M}\in\R^{H\times W\times c}$ (fine spatialement, pauvre spectralement,
+  $c\ll C$ bandes).
+\end{itemize}
+Ce problème est le c\oe ur méthodologique de la fusion Sentinel-2/Sentinel-3~:
+Sentinel-2 joue le rôle du flux multispectral fin (jusqu'à 10\,m, 13 bandes) et
+Sentinel-3/OLCI celui du flux hyperspectral grossier (300\,m, 21 bandes).
+
+Le problème est un \emph{problème inverse mal posé}~: le nombre d'inconnues
+($H\!\cdot\!W\!\cdot\!C$) excède largement le nombre d'observations. Toute
+méthode doit donc injecter un \emph{a priori} de structure. La famille de
+modèles étudiée ici adopte l'a priori multilinéaire de \textsc{Tucker}~: la
+scène vit dans le produit de trois sous-espaces de faible dimension (spatial
+ligne, spatial colonne, spectral), couplés par un c\oe ur creux qui encode les
+interactions.
+
+\paragraph{Positionnement.} Ce cadre est celui des méthodes tensorielles de la
+littérature — STEREO (CPD couplée), SCOTT (Tucker couplée par HOSVD), et leurs
+variantes parcimonieuses G-STEREO/G-SCOTT. Notre contribution dans ce rapport
+n'est pas le modèle lui-même mais son étude \emph{à solveur variable}~: nous
+résolvons \textbf{le même} programme d'optimisation par cinq algorithmes de
+natures différentes et nous explicitons ce que chaque choix change,
+mathématiquement et pratiquement.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Notations et rappels d'algèbre multilinéaire}
+% ══════════════════════════════════════════════════════════════════
+
+Les tenseurs sont notés en calligraphie grasse ($\T{S}$), les matrices en gras
+($\M{D}$), les scalaires en italique. Pour $\T{X}\in\R^{I_1\times I_2\times
+I_3}$~:
+
+\begin{definition}[Dépliement]
+Le dépliement selon le mode $n$, noté $\unfold{X}{n}$, réarrange les fibres de
+mode $n$ en colonnes~: $\unfold{X}{1}\in\R^{I_1\times I_2 I_3}$,
+$\unfold{X}{2}\in\R^{I_2\times I_1 I_3}$, $\unfold{X}{3}\in\R^{I_3\times I_1
+I_2}$.
+\end{definition}
+
+\begin{definition}[Produit de mode]
+Le produit de mode $n$ entre $\T{X}$ et $\M{U}\in\R^{J\times I_n}$, noté
+$\T{X}\times_n \M{U}$, contracte la dimension $I_n$~:
+$(\T{X}\times_1\M{U})_{j i_2 i_3} = \sum_{i_1} U_{j i_1} X_{i_1 i_2 i_3}$,
+soit en dépliement $\unfold{(\T{X}\times_n\M{U})}{n} = \M{U}\,\unfold{X}{n}$.
+\end{definition}
+
+\begin{definition}[Décomposition de Tucker]
+Une décomposition de Tucker de rangs multilinéaires $(R_1,R_2,R_3)$ s'écrit
+\begin{equation}
+  \T{S} \;=\; \T{G}\times_1 \M{D}_1 \times_2 \M{D}_2 \times_3 \M{D}_3,
+  \qquad
+  \T{G}\in\R^{R_1\times R_2\times R_3},\;
+  \M{D}_n\in\R^{I_n\times R_n},
+  \label{eq:tucker}
+\end{equation}
+où $\T{G}$ est le \emph{c\oe ur} et les $\M{D}_n$ les \emph{dictionnaires} (ou
+facteurs) de mode. En coordonnées~:
+$S_{ijk}=\sum_{a=1}^{R_1}\sum_{b=1}^{R_2}\sum_{c=1}^{R_3}
+G_{abc}\,(D_1)_{ia}(D_2)_{jb}(D_3)_{kc}$.
+\end{definition}
+
+Le nombre de degrés de liberté passe de $HWC$ à
+$R_1R_2R_3 + HR_1 + WR_2 + CR_3$ — pour Pavia ($608\times336\times103$) et des
+rangs $(30,30,10)$, c'est une compression d'un facteur $\sim 700$. C'est cet
+écrasement dimensionnel qui rend le problème inverse identifiable.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Modèle d'observation}
+\label{sec:observation}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Dégradation spatiale (voie hyperspectrale)}
+
+L'acquisition basse résolution est modélisée par un flou de réponse
+impulsionnelle (PSF) suivi d'une décimation de facteur $r$, \emph{séparable}
+par lignes et colonnes~:
+\begin{equation}
+  \T{H} \;=\; \T{S}\times_1 \M{B}_h \times_2 \M{B}_w \;+\; \T{E}_H,
+  \qquad \M{B}_h\in\R^{h\times H},\; \M{B}_w\in\R^{w\times W},
+  \label{eq:degH}
+\end{equation}
+où $\T{E}_H$ est un bruit blanc gaussien. La matrice $\M{B}_h$ est construite
+depuis la coupe centrale 1-D $p\in\R^{2m+1}$ du noyau PSF 2-D fourni
+(normalisée à somme unité), par
+\begin{equation}
+  (\M{B}_h)_{i,\,j} \;=\; \frac{p_{\,j-ir+m}}
+  {\sum_{l} p_{\,l-ir+m}}
+  \quad\text{si } |j-ir|\le m,\qquad 0\text{ sinon},
+  \label{eq:psfmat}
+\end{equation}
+c'est-à-dire une convolution-décimation à bords renormalisés (chaque ligne de
+$\M{B}_h$ somme à 1, ce qui préserve la radiométrie moyenne).
+
+\subsection{Dégradation spectrale (voie multispectrale)}
+
+L'intégration des bandes fines dans les bandes larges du capteur MSI est
+modélisée par la matrice de réponses spectrales (SRF) $\M{R}\in\R^{c\times
+C}$~:
+\begin{equation}
+  \T{M} \;=\; \T{S}\times_3 \M{R} \;+\; \T{E}_M .
+  \label{eq:degM}
+\end{equation}
+
+\subsection{Normalisation et cohérence d'échelle}
+
+Chaque observation est normalisée par son percentile 99~:
+$\widetilde{\T{H}}=\T{H}/s_H$, $\widetilde{\T{M}}=\T{M}/s_M$ avec
+$s_X=\mathrm{perc}_{99}(\T{X})$. La SRI est estimée dans l'échelle de
+$\T{H}$~; la prédiction MSI doit donc être recalée par le facteur
+$\rho = s_H/s_M$~:
+\begin{equation}
+  \widehat{\T{M}} \;=\; \rho\,\bigl(\T{S}\times_3\M{R}\bigr).
+  \label{eq:scale}
+\end{equation}
+Cette correction, absente des implémentations historiques, supprime un biais
+systématique entre les deux termes d'attache aux données.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Le modèle commun : Tucker couplé à c\oe ur parcimonieux}
+\label{sec:model}
+% ══════════════════════════════════════════════════════════════════
+
+Toutes les architectures de ce rapport estiment le \emph{même} objet~: le
+quadruplet $(\T{G},\M{D}_1,\M{D}_2,\M{D}_3)$ minimisant la fonction de coût
+couplée
+\begin{equation}
+\boxed{\;
+  \mathcal{L}(\T{G},\M{D}_1,\M{D}_2,\M{D}_3)
+  \;=\;
+  \underbrace{\lambda_H\,
+  \norf{\widetilde{\T{H}} - \T{G}\times_1\M{B}_h\M{D}_1
+  \times_2\M{B}_w\M{D}_2\times_3\M{D}_3}^2}_{\text{attache HSI}}
+  \;+\;
+  \underbrace{\lambda_M\,
+  \norf{\widetilde{\T{M}} - \rho\,\T{G}\times_1\M{D}_1
+  \times_2\M{D}_2\times_3\M{R}\M{D}_3}^2}_{\text{attache MSI}}
+  \;+\;
+  \underbrace{\beta\,\noru{\T{G}}}_{\text{parcimonie}}
+\;}
+\label{eq:loss}
+\end{equation}
+avec $\noru{\T{G}}=\sum_{abc}|G_{abc}|$ et, dans toutes nos expériences,
+$\lambda_H=\lambda_M=1$.
+
+\subsection{Rôle de chaque terme}
+
+\textbf{Attache HSI.} La reconstruction $\T{S}$ dégradée spatialement
+(éq.~\ref{eq:degH}) doit expliquer l'observation hyperspectrale~: ce terme
+ancre les \emph{spectres}. Comme $\M{B}_h\M{D}_1$ compose le dictionnaire
+spatial avec le flou, l'information spatiale fine de $\M{D}_1$ n'y est pas
+contrainte — elle l'est par le second terme.
+
+\textbf{Attache MSI.} La reconstruction projetée spectralement
+(éq.~\ref{eq:degM}) doit expliquer l'observation multispectrale~: ce terme
+ancre la \emph{géométrie fine}. La complémentarité des deux projections
+($\M{B}$ agit sur les modes 1--2, $\M{R}$ sur le mode 3) est ce qui rend le
+couplage identifiant~: aucune observation seule ne contraint tous les modes.
+
+\textbf{Parcimonie du c\oe ur.} La pénalité $\ell_1$ sur $\T{G}$ est la
+relaxation convexe du comptage $\ell_0$. Elle repose sur l'hypothèse physique
+que \emph{peu d'interactions triples} (motif spatial ligne $\times$ motif
+spatial colonne $\times$ signature spectrale) suffisent à décrire la scène~:
+le c\oe ur agit comme une table de contingence creuse entre les atomes des
+trois dictionnaires. Outre la régularisation statistique, la parcimonie
+protège contre le sur-ajustement du bruit dans le régime très sous-déterminé.
+
+\subsection{Ambiguïté d'échelle et normalisation des dictionnaires}
+\label{sec:ambiguity}
+
+\begin{proposition}[Invariance d'échelle]
+Pour toutes matrices diagonales inversibles $\M{\Lambda}_n$, le remplacement
+$\M{D}_n \leftarrow \M{D}_n\M{\Lambda}_n^{-1}$,
+$\T{G} \leftarrow \T{G}\times_1\M{\Lambda}_1\times_2\M{\Lambda}_2
+\times_3\M{\Lambda}_3$ laisse $\T{S}$ inchangée mais modifie $\noru{\T{G}}$.
+\end{proposition}
+
+Sans contrainte supplémentaire, l'optimiseur peut donc \emph{contourner} la
+pénalité $\ell_1$ en gonflant les dictionnaires et en écrasant le c\oe ur
+(ou l'inverse), rendant le seuillage incohérent d'une itération à l'autre.
+Toutes nos architectures lèvent cette ambiguïté par la \textbf{normalisation
+des colonnes}~:
+\begin{equation}
+  \M{D}_n \;\longleftarrow\; \M{D}_n\,
+  \mathrm{diag}\bigl(\lVert \M{d}_{n,1}\rVert_2,\dots,
+  \lVert \M{d}_{n,R_n}\rVert_2\bigr)^{-1},
+  \label{eq:normcols}
+\end{equation}
+appliquée à chaque itération (ALS) ou à chaque passe avant (variantes
+gradient, où la normalisation est \emph{incluse dans le graphe de calcul} et
+donc différentiée). Toute l'énergie vit alors dans $\T{G}$, et $\beta$ a une
+signification stable.
+
+\subsection{Initialisation par SVD des observations}
+\label{sec:init}
+
+Le problème (\ref{eq:loss}) est non convexe~; le point de départ est décisif.
+Toutes les architectures partagent la même initialisation \emph{spectrale
+par les données}, qui n'utilise que les observations (jamais la référence)~:
+\begin{align}
+  \M{D}_1^{(0)} &= U_{R_1}\!\bigl(\unfold{\widetilde{M}}{1}\bigr), &
+  \M{D}_2^{(0)} &= U_{R_2}\!\bigl(\unfold{\widetilde{M}}{2}\bigr), &
+  \M{D}_3^{(0)} &= U_{R_3}\!\bigl(\unfold{\widetilde{H}}{3}\bigr),
+  \label{eq:init-svd}
+\end{align}
+où $U_k(\cdot)$ désigne les $k$ premiers vecteurs singuliers gauches~: les
+sous-espaces spatiaux viennent du flux le plus fin spatialement, le
+sous-espace spectral du flux le plus riche spectralement. Le c\oe ur est
+initialisé par projection de l'observation fine~:
+\begin{equation}
+  \T{G}^{(0)} \;=\;
+  \widetilde{\T{M}}\times_1{\M{D}_1^{(0)}}^{\!\top}
+  \times_2{\M{D}_2^{(0)}}^{\!\top}
+  \times_3\bigl(\M{R}\M{D}_3^{(0)}\bigr)^{\!\top},
+  \qquad
+  \T{G}^{(0)} \leftarrow \T{G}^{(0)}/\norf{\T{G}^{(0)}}.
+  \label{eq:init-core}
+\end{equation}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architecture I --- ALS + FISTA (solveur de référence)}
+\label{sec:als}
+% ══════════════════════════════════════════════════════════════════
+
+La première architecture suit la tradition des méthodes tensorielle (STEREO,
+SCOTT, CTF)~: une \textbf{minimisation alternée par blocs}. On observe que
+(\ref{eq:loss}), non convexe globalement, est \emph{convexe par bloc}~: à
+trois blocs fixés, le problème dans le quatrième est un moindre carré
+(éventuellement pénalisé $\ell_1$). L'algorithme boucle donc sur quatre
+sous-problèmes résolus exactement ou quasi exactement.
+
+\subsection{Mise à jour des dictionnaires (moindres carrés)}
+
+Écrivons le résidu de la source $k$ en dépliement de mode $n$~: en notant
+$\M{B}_k^{(n)}$ l'opérateur agissant sur le mode $n$ pour la source $k$
+(p.ex. $\M{B}_h$ pour la source HSI en mode 1, $\M{I}$ pour la source MSI) et
+$\M{W}_k^{(n)}$ le produit de Khatri--Rao--Kronecker des autres facteurs
+dégradés,
+\begin{equation}
+  \unfold{Y_k}{n} \;\approx\;
+  \M{B}_k^{(n)}\,\M{D}_n\;\M{A}_k^{(n)\top},
+  \qquad
+  \M{A}_k^{(n)} := \text{(facteurs et c\oe ur des autres modes)} .
+\end{equation}
+La mise à jour pratique de $\M{D}_n$ agrège toutes les sources dans un
+système linéaire de type normal~:
+\begin{equation}
+  \Bigl[\;\sum_k \lambda_k\,
+  \M{B}_k^{(n)\top}\M{B}_k^{(n)} + \varepsilon\M{I}\;\Bigr]\,
+  \M{D}_n
+  \;=\;
+  \sum_k \lambda_k\,
+  \M{B}_k^{(n)\top}\,\unfold{Y_k}{n}\,\M{A}_k^{(n)},
+  \label{eq:als-D}
+\end{equation}
+résolu par moindres carrés régularisés ($\varepsilon=10^{-5}$), puis
+normalisation des colonnes (éq.~\ref{eq:normcols}). Chaque source contribue au
+système~: le dictionnaire spatial voit à la fois la version floutée (via
+$\M{B}^\top\M{B}$) et la version fine (via $\M{I}$).
+
+\subsection{Mise à jour du c\oe ur (FISTA)}
+
+À dictionnaires fixés, le sous-problème en $\T{G}$ est un LASSO
+tensoriel~: $\min_{\T{G}} f(\T{G}) + \beta\noru{\T{G}}$ avec $f$ quadratique.
+Son gradient s'obtient par rétro-projection des résidus~:
+\begin{equation}
+  \nabla f(\T{G})
+  \;=\;
+  2\sum_k \lambda_k\;
+  \T{R}_k \times_1 (\M{B}_k^{(1)}\M{D}_1)^{\!\top}
+          \times_2 (\M{B}_k^{(2)}\M{D}_2)^{\!\top}
+          \times_3 (\M{B}_k^{(3)}\M{D}_3)^{\!\top},
+  \label{eq:gradG}
+\end{equation}
+où $\T{R}_k$ est le résidu de la source $k$. La constante de Lipschitz de
+$\nabla f$ est majorée par le produit des normes spectrales~:
+\begin{equation}
+  L \;=\; 2\sum_k \lambda_k\,
+  \prod_{n=1}^{3}\bigl\lVert \M{B}_k^{(n)}\M{D}_n\bigr\rVert_2^2 ,
+  \label{eq:lipschitz}
+\end{equation}
+ce qui donne un pas \emph{calculé, sans réglage}. L'itération FISTA combine
+étape de gradient, opérateur proximal et extrapolation de Nesterov~:
+\begin{align}
+  \T{G}^{(j+1)} &= \st_{\beta/L}\!\Bigl(\T{Z}^{(j)}
+     - \tfrac{1}{L}\nabla f(\T{Z}^{(j)})\Bigr),
+  &t_{j+1} &= \tfrac{1+\sqrt{1+4t_j^2}}{2},
+  &\T{Z}^{(j+1)} &= \T{G}^{(j+1)}
+     + \tfrac{t_j-1}{t_{j+1}}\bigl(\T{G}^{(j+1)}-\T{G}^{(j)}\bigr),
+  \label{eq:fista}
+\end{align}
+où $\st_\tau(x)=\mathrm{sign}(x)\max(|x|-\tau,0)$ est le \textbf{seuillage
+doux}, opérateur proximal exact de $\tau\noru{\cdot}$. FISTA garantit
+$f(\T{G}^{(j)})-f^\star = O(1/j^2)$ sur ce sous-problème.
+
+\subsection{Propriétés}
+
+\begin{itemize}
+  \item \textbf{Garanties}~: descente monotone de $\mathcal{L}$ à chaque bloc~;
+  convergence vers un point critique du problème joint (au sens des méthodes
+  BCD sur fonctions multi-convexes).
+  \item \textbf{Parcimonie exacte}~: le prox produit de vrais zéros~;
+  la sparsité de $\T{G}$ est mesurable et interprétable.
+  \item \textbf{Hyperparamètres}~: quasi aucun ($\beta$, rangs, nombre
+  d'itérations)~; le pas est déduit de (\ref{eq:lipschitz}).
+  \item \textbf{Coût}~: chaque itération externe requiert des dépliements, des
+  systèmes linéaires $R_n\times R_n$ par bloc et $O(n_{\text{FISTA}})$
+  produits de mode~; c'est l'architecture la plus chère par itération
+  ($\sim$265\,s par scène Pavia en pratique, CPU).
+  \item \textbf{Limite}~: la résolution \emph{exacte} de chaque bloc peut
+  sur-adapter le bloc courant aux erreurs des blocs figés, et la trajectoire
+  alternée peut converger vers des points critiques de mauvaise qualité —
+  phénomène observé expérimentalement (voir~\S\ref{sec:discussion}).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Le cadre gradient unifié (architectures II--V)}
+\label{sec:gradient}
+% ══════════════════════════════════════════════════════════════════
+
+Les quatre architectures suivantes abandonnent l'alternance~: tous les
+paramètres $\theta=(\T{G},\M{D}_1,\M{D}_2,\M{D}_3)$ sont mis à jour
+\emph{simultanément} par différentiation automatique de la partie lisse de
+(\ref{eq:loss}),
+\begin{equation}
+  f(\theta) \;=\; \lambda_H\norf{\widetilde{\T{H}}-\widehat{\T{H}}(\theta)}^2
+  + \lambda_M\norf{\widetilde{\T{M}}-\widehat{\T{M}}(\theta)}^2 ,
+\end{equation}
+la normalisation des colonnes (\ref{eq:normcols}) étant \emph{à l'intérieur}
+du graphe de calcul~: on optimise des paramètres libres
+$\M{D}_n^{\text{raw}}$ et le modèle utilise
+$\M{D}_n=\M{D}_n^{\text{raw}}/\lVert\cdot\rVert_{2,\text{col}}$, si bien que
+la contrainte est exactement satisfaite à chaque évaluation, sans projection
+externe. Les gradients sont bornés par écrêtage de norme globale
+($\lVert\nabla\rVert_2\le 10$).
+
+La pénalité $\ell_1$, non lisse, est traitée de deux manières concurrentes qui
+définissent les sous-familles \emph{prox} et \emph{$\ell_1$-pénalisée}~:
+
+\paragraph{(a) Schéma proximal (splitting avant--arrière).}
+Après chaque pas de l'optimiseur sur $f$ seul, on applique le prox au c\oe ur~:
+\begin{equation}
+  \T{G} \;\longleftarrow\; \st_{\tau}(\T{G}),
+  \qquad \tau = \beta\,\eta_0 ,
+  \label{eq:prox-step}
+\end{equation}
+où $\eta_0$ est le \textbf{pas nominal} (et non le pas courant du
+scheduler)~: ce \emph{découplage} évite que la décroissance du taux
+d'apprentissage n'affaiblisse silencieusement le seuil effectif en fin
+d'entraînement. Comme en FISTA, le prox produit des \textbf{zéros exacts}.
+
+\paragraph{(b) Pénalité sous-différentiée.}
+On ajoute $\beta\noru{\T{G}}$ directement à la perte~; l'autodiff propage
+$\beta\,\mathrm{sign}(\T{G})$. Le gradient pousse les coefficients vers zéro
+mais, un pas de gradient étant une opération continue, \textbf{aucun
+coefficient n'atteint exactement zéro}~: la parcimonie est approchée
+(coefficients $O(\beta\eta)$), non structurelle.
+
+\begin{remark}
+La distinction (a)/(b) est invisible sur la fidélité lorsque $\beta$ est
+petit (les deux variantes coïncident à $10^{-4}$ près dans nos mesures pour
+$\beta=10^{-6}$) mais devient essentielle dès que la parcimonie est un
+objectif en soi~: seul le schéma proximal fournit un support creux
+exploitable et un diagnostic fiable de la santé du c\oe ur.
+\end{remark}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architecture II --- Adam + prox}
+\label{sec:adamprox}
+% ══════════════════════════════════════════════════════════════════
+
+L'optimiseur Adam maintient des moments d'ordre 1 et 2 par coordonnée~:
+\begin{align}
+  \M{m}_t &= \gamma_1\M{m}_{t-1} + (1-\gamma_1)\,\M{g}_t, &
+  \M{v}_t &= \gamma_2\M{v}_{t-1} + (1-\gamma_2)\,\M{g}_t^{\odot 2}, \\
+  \hat{\M{m}}_t &= \M{m}_t/(1-\gamma_1^t), &
+  \hat{\M{v}}_t &= \M{v}_t/(1-\gamma_2^t), \\
+  \theta_{t+1} &= \theta_t - \eta_t\,
+  \frac{\hat{\M{m}}_t}{\sqrt{\hat{\M{v}}_t}+\epsilon},
+  &&(\gamma_1,\gamma_2,\epsilon)=(0.9,\,0.999,\,10^{-8}),
+  \label{eq:adam}
+\end{align}
+suivi de l'étape proximale (\ref{eq:prox-step}) sur $\T{G}$ uniquement.
+
+\paragraph{Pourquoi Adam domine-t-il sur ce problème ?}
+Le paysage de (\ref{eq:loss}) est extrêmement \textbf{mal conditionné}~: les
+sensibilités de $\mathcal{L}$ aux coordonnées de $\T{G}$ (multipliées par
+trois dictionnaires) et aux coordonnées des $\M{D}_n$ (multipliées par le
+c\oe ur et deux dictionnaires) diffèrent de plusieurs ordres de grandeur, et
+varient au cours de l'optimisation. La renormalisation par
+$\sqrt{\hat{\M{v}}_t}$ agit comme un préconditionneur diagonal adaptatif qui
+égalise ces échelles — c'est l'analogue stochastique du pas de Lipschitz par
+bloc de l'ALS, mais \emph{par coordonnée} et sans calcul de normes
+spectrales.
+
+\paragraph{Réglage retenu (après balayage).} $\eta_0=10^{-2}$, scheduler
+cosinus $\eta_t = \eta_{\min} + \tfrac12(\eta_0-\eta_{\min})
+(1+\cos(\pi t/T))$, $T=10^4$ itérations, arrêt anticipé sur la perte
+(patience réglable), seuil prox découplé $\tau=\beta\eta_0$.
+
+\paragraph{Complexité.} Une itération $=$ une passe avant (deux produits de
+mode complets) $+$ une rétropropagation ($\approx 2\times$ la passe avant)
+$+$ $O(\#\theta)$ pour Adam~; entièrement vectorisée sur GPU
+($\sim$40--90\,s pour $10^4$ itérations sur A100, scène Pavia).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architecture III --- Adam + pénalité $\ell_1$}
+\label{sec:adaml1}
+% ══════════════════════════════════════════════════════════════════
+
+Identique à l'architecture II \emph{sauf} le traitement de la parcimonie~:
+la perte optimisée devient $f(\theta)+\beta\noru{\T{G}}$ et aucune étape
+proximale n'est appliquée. Le sous-gradient utilisé par l'autodiff est
+\begin{equation}
+  \partial_{\T{G}}\bigl[\beta\noru{\T{G}}\bigr]
+  = \beta\,\mathrm{sign}(\T{G})
+  \quad(\text{avec } \mathrm{sign}(0)=0).
+\end{equation}
+
+\paragraph{Ce qui change.}
+\begin{itemize}
+  \item \textbf{Pas de zéros exacts}~: au voisinage de $0$, le terme de
+  fidélité et la pénalité s'équilibrent en un point $\neq 0$~; le support de
+  $\T{G}$ reste plein. La \og{}parcimonie\fg{} est un rétrécissement
+  ($shrinkage$), pas une sélection.
+  \item \textbf{Interaction avec Adam}~: la pénalité passe par le
+  préconditionneur $1/\sqrt{\hat{v}}$~; le rétrécissement effectif dépend
+  donc de la variance du gradient de chaque coordonnée — un effet de bord
+  connu (analogue au problème réglé par AdamW pour le weight decay)~: le
+  \emph{même} $\beta$ ne produit pas la \emph{même} contraction partout.
+  Le schéma proximal (架. II), appliqué hors du préconditionneur, n'a pas ce
+  défaut.
+  \item \textbf{Intérêt}~: simplicité maximale (une ligne), et sert de
+  contrôle expérimental — l'écart II$\,$vs$\,$III isole \emph{l'effet du
+  traitement de la non-lissité} à optimiseur identique.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architecture IV --- SGD à inertie + prox}
+\label{sec:sgd}
+% ══════════════════════════════════════════════════════════════════
+
+Descente de gradient classique avec moment de Polyak~:
+\begin{equation}
+  \M{u}_t = \mu\,\M{u}_{t-1} + \M{g}_t, \qquad
+  \theta_{t+1} = \theta_t - \eta\,\M{u}_t,
+  \qquad \mu = 0.9,\;\; \eta = \eta_0/2,
+  \label{eq:sgd}
+\end{equation}
+suivie de l'étape proximale (\ref{eq:prox-step}). Le pas est réduit de moitié
+par rapport à Adam car, sans renormalisation par coordonnée, le pas stable est
+dicté par la \emph{pire} courbure du paysage.
+
+\paragraph{Ce qui change et ce que cela révèle.}
+SGD applique le \emph{même pas à toutes les coordonnées}. Sur un problème
+multilinéaire mal conditionné, cela force un compromis~: pas assez grand pour
+faire progresser les directions plates (dictionnaires), pas assez petit pour
+ne pas osciller dans les directions raides (c\oe ur). Expérimentalement, SGD
+suit Adam pendant la phase initiale (chute rapide portée par l'init SVD) puis
+\emph{décroche} dans la phase de raffinement — l'écart final ($\approx$
+$-0.3$ à $-0.6$\,dB selon la scène) mesure précisément la valeur du
+préconditionnement adaptatif. L'inertie ($\mu=0.9$) atténue mais ne supprime
+pas ce déficit~: elle accélère dans les vallées cohérentes mais n'égalise pas
+les échelles.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architecture V --- LBFGS + prox}
+\label{sec:lbfgs}
+% ══════════════════════════════════════════════════════════════════
+
+L-BFGS approxime l'inverse du hessien par une histoire de $m$ paires
+$(\M{s}_i,\M{y}_i)=(\theta_{i+1}-\theta_i,\;\M{g}_{i+1}-\M{g}_i)$~:
+\begin{equation}
+  \theta_{t+1} = \theta_t - \eta\,\M{H}_t\,\M{g}_t,
+  \qquad
+  \M{H}_t \approx (\nabla^2 f)^{-1}
+  \text{ (récurrence à deux boucles, mémoire } m=10\text{)},
+  \label{eq:lbfgs}
+\end{equation}
+avec recherche linéaire interne (jusqu'à 20 évaluations de $f$ par pas
+externe), puis étape proximale (\ref{eq:prox-step}).
+
+\paragraph{Ce qui change.}
+\begin{itemize}
+  \item \textbf{Information de courbure}~: contrairement à Adam (diagonal),
+  LBFGS capte des \emph{corrélations entre coordonnées} — utile quand les
+  blocs $\T{G}$ et $\M{D}_n$ interagissent fortement.
+  \item \textbf{Coût par pas}~: chaque pas externe vaut jusqu'à 20 passes
+  avant/arrière~; à budget temps égal, LBFGS fait $\sim$20$\times$ moins de
+  pas. On le lance donc sur $\sim$300 pas externes avec $\eta=0.5$.
+  \item \textbf{Friction théorique}~: la théorie BFGS suppose $f$ lisse~;
+  l'étape proximale intercalée viole cette hypothèse (le prox déplace
+  $\theta$ hors de la trajectoire prédite par $\M{H}_t$). Avec $\beta$ petit,
+  la perturbation est négligeable~; pour $\beta$ grand, un schéma
+  \emph{prox-quasi-Newton} dédié serait nécessaire.
+  \item \textbf{Note d'implémentation}~: l'implémentation PyTorch de LBFGS
+  aplati les gradients par \texttt{.view(-1)}, ce qui exige des gradients
+  \emph{contigus} en mémoire — les gradients issus d'\texttt{einsum} ne le
+  sont pas toujours~; ils sont explicitement rendus contigus dans la
+  fermeture d'évaluation.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Synthèse comparative}
+\label{sec:discussion}
+% ══════════════════════════════════════════════════════════════════
+
+\subsection{Tableau récapitulatif}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & \textbf{I. ALS+FISTA} & \textbf{II. Adam+prox} & \textbf{III. Adam+$\ell_1$}
+ & \textbf{IV. SGD+prox} & \textbf{V. LBFGS+prox} \\
+\midrule
+Mise à jour            & alternée, exacte & simultanée & simultanée & simultanée & simultanée \\
+Pas                    & calculé (Lipschitz) & adaptatif/coord. & adaptatif/coord. & global fixe & courbure $m{=}10$ \\
+Zéros exacts dans $\T{G}$ & \textbf{oui} (prox) & \textbf{oui} (prox) & non & \textbf{oui} (prox) & \textbf{oui} (prox) \\
+Descente monotone      & \textbf{oui} & non & non & non & non (recherche lin.) \\
+Hyperparamètres        & $\beta$, rangs & $+\,\eta_0$, scheduler & $+\,\eta_0$, scheduler & $+\,\eta$, $\mu$ & $+\,\eta$, $m$ \\
+Coût/itération         & élevé & faible & faible & faible & $\sim$20$\times$ faible \\
+Support GPU            & partiel & natif & natif & natif & natif \\
+Extension non-linéaire & re-dérivation totale & \emph{immédiate} & \emph{immédiate} & \emph{immédiate} & délicate \\
+\bottomrule
+\end{tabular}
+\caption{Les cinq architectures~: même modèle (éq.~\ref{eq:loss}), cinq
+stratégies de résolution.}
+\label{tab:comparison}
+\end{table}
+
+\subsection{Ce qui change d'une architecture à l'autre — lecture progressive}
+
+\textbf{I $\to$ II (alternance $\to$ gradient simultané).} Le changement le
+plus lourd de conséquences. L'ALS résout chaque bloc \emph{exactement} dans
+le contexte figé des autres — optimal localement, mais la trajectoire
+alternée peut s'enfermer dans des points critiques médiocres où chaque bloc
+est optimal contre les erreurs des autres. Le gradient simultané fait des pas
+\emph{imparfaits mais cohérents}~: tous les paramètres co-évoluent, et le
+bruit de discrétisation aide à franchir les selles. Expérimentalement, cet
+unique changement vaut plusieurs dB à modèle identique — de loin l'écart
+dominant de l'étude, supérieur à ce que l'on gagne ensuite en changeant
+d'optimiseur au sein de la famille gradient.
+
+\textbf{II $\to$ III (prox $\to$ pénalité).} Ne change ni la fidélité (à
+$\beta$ faible) ni la vitesse~; change la \emph{nature} de la parcimonie
+(exacte vs approchée) et sa \emph{robustesse} (seuil hors préconditionneur vs
+rétrécissement modulé par $\hat{v}$). C'est un contrôle expérimental plus
+qu'une alternative.
+
+\textbf{II $\to$ IV (adaptatif $\to$ pas global).} Supprime le
+préconditionnement diagonal~; mesure directement le coût du mauvais
+conditionnement multilinéaire. Le décrochage de SGD en phase de raffinement
+est la signature expérimentale de ce conditionnement.
+
+\textbf{II $\to$ V (diagonal $\to$ quasi-Newton).} Ajoute des corrélations de
+courbure au prix de $\sim$20 évaluations par pas. Sur ce problème, LBFGS
+égale Adam sans le dépasser~: l'essentiel du conditionnement est
+\emph{diagonal} (échelles par coordonnée), déjà capté par Adam~; la courbure
+croisée n'apporte pas de gain mesurable à budget égal.
+
+\subsection{Recommandations}
+
+\begin{enumerate}
+  \item \textbf{Pour une baseline de littérature}~: architecture I — solveur
+  canonique, garanties, zéro réglage~; c'est la référence attendue par les
+  relecteurs.
+  \item \textbf{Pour la performance et l'extensibilité}~: architecture II —
+  meilleure fidélité, zéros exacts, GPU, et la boucle d'entraînement se
+  transpose telle quelle aux modèles non-linéaires (seul le décodeur change).
+  \item \textbf{À reporter systématiquement ensemble}~: I \emph{et} II. Leur
+  écart quantifie la part du solveur~; l'écart entre II et un modèle
+  non-linéaire quantifie alors proprement la part de la classe de modèle.
+  Confondre les deux écarts (comparer un non-linéaire optimisé par gradient à
+  un linéaire résolu par ALS) surestime structurellement l'apport de la
+  non-linéarité.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Détails d'implémentation}
+% ══════════════════════════════════════════════════════════════════
+
+\paragraph{Produits de mode.} La reconstruction (\ref{eq:tucker}) et ses
+dégradations sont réalisées par contractions \texttt{einsum}
+(\texttt{abc,ia,jb,kc->ijk})~; l'autodiff fournit exactement
+(\ref{eq:gradG}) sans dérivation manuelle.
+
+\paragraph{Double précision d'échelle.} Les entrées sont normalisées par
+percentile~99 par source~; la sortie est dénormalisée par $s_H$ et écrêtée à
+$[0,1]$.
+
+\paragraph{Arrêt.} Budget maximal de $10^4$ itérations, arrêt anticipé si la
+perte ne s'améliore plus de $10^{-7}$ pendant la patience~; l'état retenu est
+celui de la \emph{meilleure perte} rencontrée (et non le dernier).
+
+\paragraph{Suivi.} À chaque 10 itérations sont journalisés la perte couplée
+et le taux de zéros exacts de $\T{G}$ — ce dernier étant le diagnostic de
+santé du c\oe ur (une sparsité qui dérive vers 100\,\% signale un seuillage
+pathologique).
+
+\paragraph{Reproductibilité.} Mêmes graines, mêmes opérateurs
+$\M{B}_h,\M{B}_w,\M{R}$ (construits depuis la PSF et la SRF \emph{fournies}
+par le cadre d'évaluation), même initialisation
+(\ref{eq:init-svd})--(\ref{eq:init-core}) pour les cinq architectures~: la
+seule variable libre entre architectures est l'algorithme de descente.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Conclusion}
+% ══════════════════════════════════════════════════════════════════
+
+Nous avons présenté cinq architectures de résolution d'un même modèle
+linéaire de fusion — la décomposition de Tucker couplée à c\oe ur
+parcimonieux — en explicitant l'intégralité des équations de mise à jour et
+les conséquences de chaque choix algorithmique. Trois enseignements
+principaux se dégagent~:
+
+\begin{enumerate}
+  \item \textbf{Le solveur fait partie du modèle empirique.} À paramétrisation
+  identique, le passage de l'alternance exacte au gradient simultané
+  préconditionné change les performances de plusieurs dB~: toute comparaison
+  inter-modèles doit fixer le solveur ou reporter les deux.
+  \item \textbf{La parcimonie exige un traitement proximal.} Seul le seuillage
+  doux — dans FISTA comme après Adam — produit un support creux exact~; la
+  pénalité sous-différentiée ne fait que rétrécir. Le découplage du seuil et
+  du scheduler est nécessaire pour que $\beta$ garde un sens tout au long de
+  l'entraînement.
+  \item \textbf{Le cadre gradient est le pont vers le non-linéaire.} La perte
+  couplée, les opérateurs physiques différentiables, l'étape proximale et la
+  boucle d'entraînement sont réutilisables à l'identique lorsque le décodeur
+  multilinéaire (\ref{eq:tucker}) est remplacé par un décodeur
+  convolutionnel~: les architectures II--V constituent ainsi la base
+  méthodologique commune des modèles non-linéaires du projet.
+\end{enumerate}
+
+\appendix
+
+% ══════════════════════════════════════════════════════════════════
+\section{Pseudo-code des deux schémas principaux}
+% ══════════════════════════════════════════════════════════════════
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.92\textwidth}
+\textbf{Algorithme 1 — Architecture I : ALS + FISTA}
+\begin{enumerate}\itemsep2pt
+  \item Initialiser $(\M{D}_1,\M{D}_2,\M{D}_3,\T{G})$ par
+        (\ref{eq:init-svd})--(\ref{eq:init-core}).
+  \item \textbf{Pour} $i = 1,\dots,n_{\text{outer}}$ :
+  \begin{enumerate}
+    \item \textbf{Pour} $n = 1,2,3$ : $\M{D}_n \leftarrow$ solution de
+          (\ref{eq:als-D})~; normaliser les colonnes (\ref{eq:normcols}).
+    \item $\T{G} \leftarrow \T{G}/\norf{\T{G}}$~;
+          calculer $L$ par l'équation (\ref{eq:lipschitz}).
+    \item \textbf{Pour} $j = 1,\dots,n_{\text{FISTA}}$ :
+          itération (\ref{eq:fista}) avec seuil $\beta/L$.
+  \end{enumerate}
+  \item \textbf{Retourner}
+        $\T{S}=\T{G}\times_1\M{D}_1\times_2\M{D}_2\times_3\M{D}_3$.
+\end{enumerate}
+\end{minipage}}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\fbox{\begin{minipage}{0.92\textwidth}
+\textbf{Algorithme 2 — Architectures II/IV/V : gradient + prox
+(Adam / SGD / LBFGS)}
+\begin{enumerate}\itemsep2pt
+  \item Initialiser $\theta^{(0)}$ par
+        (\ref{eq:init-svd})--(\ref{eq:init-core}).
+  \item \textbf{Pour} $t = 1,\dots,T$ \textbf{ou} arrêt anticipé :
+  \begin{enumerate}
+    \item passe avant~: normaliser les colonnes \emph{dans le graphe},
+          reconstruire $\T{S}$, dégrader, évaluer $f(\theta)$~;
+    \item rétropropagation~; écrêtage $\lVert\nabla\rVert_2\le 10$~;
+    \item pas de l'optimiseur (éq.~\ref{eq:adam}, \ref{eq:sgd} ou
+          \ref{eq:lbfgs})~;
+    \item $\T{G} \leftarrow \st_{\beta\eta_0}(\T{G})$
+          \hfill (seuil découplé du scheduler)
+    \item mémoriser $\theta$ si $f$ est la meilleure valeur rencontrée.
+  \end{enumerate}
+  \item \textbf{Retourner} $\T{S}(\theta^{\text{best}})$.
+\end{enumerate}
+\end{minipage}}
+\end{figure}
+
+\end{document}

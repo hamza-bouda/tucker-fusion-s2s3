@@ -1,0 +1,14 @@
+\begin{tabular}{@{}lcccc@{\hskip 18pt}cccc@{}}
+\toprule
+ & \multicolumn{4}{c}{\textbf{Indian Pines}} & \multicolumn{4}{c}{\textbf{Pavia}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+\textbf{Méthode} & PSNR & SAM & Q2n & ERGAS & PSNR & SAM & Q2n & ERGAS \\
+\midrule
+ALS + FISTA (fermé) & 10.17 & 22.80 & 0.06 & 16.03 & 12.84 & 20.45 & 0.04 & 19.62 \\
+ALS + FISTA (Lipschitz, v0) & 15.89 & 15.25 & 0.65 & 8.32 & 17.84 & 14.11 & 0.60 & 10.11 \\
+Adam + prox & 19.00 & 11.22 & 0.79 & 5.66 & 19.53 & 10.28 & 0.64 & 8.96 \\
+Adam + $\ell_1$ & 19.00 & 11.22 & 0.79 & 5.66 & 19.53 & 10.27 & \textbf{0.64} & 8.96 \\
+SGD + prox & \textbf{19.59} & \textbf{10.66} & 0.80 & \textbf{5.36} & \textbf{19.72} & \textbf{9.47} & 0.63 & \textbf{8.88} \\
+LBFGS + prox & 19.08 & 10.97 & \textbf{0.82} & 5.54 & 18.67 & 12.10 & 0.59 & 9.93 \\
+\bottomrule
+\end{tabular}

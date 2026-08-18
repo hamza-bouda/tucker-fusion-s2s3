@@ -25,12 +25,14 @@ contraint à la parcimonie** (pénalité L1 / seuillage doux proximal), déclin�
 
 | Dossier / fichiers | Contenu |
 |---|---|
-| `paper_common.py`, `paper_v0/v1/v4_*.py`, `paper_benchmark.py` | pipeline de benchmark 4 flux (ratio 30) |
-| `linear_tucker_torch.py`, `run_linear_*.py` | modèles linéaires (5 solveurs) + évaluation HyperBench |
-| `nljtae_hyperbench.py`, `run_nljtae_hyperbench.py` | NL-JTAE bi-flux pour le protocole HyperBench |
-| `*_on_ritchie.py` | soumission des jobs GPU (OAR, cluster Ritchie) |
+| `scripts_article/` | pipeline de benchmark 4 flux (ratio 30) et modèles de l'article |
+| `modeles_lineaires/` | modèles linéaires (5 solveurs) + évaluation HyperBench |
+| `modeles_non_lineaires/` | modèles NL-JTAE et expériences non linéaires |
+| `scripts_cluster/` | soumission et suivi des jobs GPU (OAR, cluster Ritchie) |
 | `article/` | manuscrit IMRAD + figures |
 | `rapport/` | rapport LaTeX des modèles linéaires |
+| `presentation/` | présentation LaTeX, synthèse et figures associées |
+| `figures_generees/` | figures produites par les expériences |
 | `results/` | métriques (CSV/JSON/MD) |
 
 ## Reproduire
@@ -40,5 +42,6 @@ contraint à la parcimonie** (pénalité L1 / seuillage doux proximal), déclin�
 2. Placer `PaviaU.mat` dans `data/` (non versionné).
 3. Pour les scripts cluster : créer un fichier local `ritchie_secret.py`
    (non versionné) définissant `RITCHIE_PASSWORD`.
-4. Benchmark local : `python paper_benchmark.py` — ou soumission GPU :
-   `python paper_run_benchmark_on_ritchie.py`.
+4. Depuis la racine du dépôt, lancer le benchmark local avec
+   `python -m scripts_article.paper_benchmark`, ou sa soumission GPU avec
+   `python -m scripts_cluster.paper_run_benchmark_on_ritchie`.

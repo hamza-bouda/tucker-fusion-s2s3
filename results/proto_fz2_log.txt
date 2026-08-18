@@ -1,0 +1,57 @@
+﻿Connexion SSH à ritchie...
+Téléversé : protocol_fz.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : linear_tucker_torch.py
+Téléversé : v0_lineaire_baseline_tucker_als.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=7605
+
+Job 7605 soumis. Surveillance...
+............................................................................
+Job terminé (T).
+
+=== LOG ===
+Iter 26/60 | Loss: 3.04e+04 | Sp: 0.1% | Norm G: 4.05e+02
+Iter 27/60 | Loss: 3.00e+04 | Sp: 0.1% | Norm G: 4.05e+02
+Iter 28/60 | Loss: 2.95e+04 | Sp: 0.1% | Norm G: 4.05e+02
+Iter 29/60 | Loss: 2.91e+04 | Sp: 0.1% | Norm G: 4.05e+02
+Iter 30/60 | Loss: 2.88e+04 | Sp: 0.1% | Norm G: 4.06e+02
+Iter 31/60 | Loss: 2.84e+04 | Sp: 0.1% | Norm G: 4.06e+02
+Iter 32/60 | Loss: 2.81e+04 | Sp: 0.1% | Norm G: 4.06e+02
+Iter 33/60 | Loss: 2.78e+04 | Sp: 0.1% | Norm G: 4.06e+02
+Iter 34/60 | Loss: 2.75e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 35/60 | Loss: 2.73e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 36/60 | Loss: 2.70e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 37/60 | Loss: 2.68e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 38/60 | Loss: 2.65e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 39/60 | Loss: 2.63e+04 | Sp: 0.1% | Norm G: 4.07e+02
+Iter 40/60 | Loss: 2.61e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 41/60 | Loss: 2.59e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 42/60 | Loss: 2.57e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 43/60 | Loss: 2.56e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 44/60 | Loss: 2.54e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 45/60 | Loss: 2.52e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 46/60 | Loss: 2.51e+04 | Sp: 0.1% | Norm G: 4.08e+02
+Iter 47/60 | Loss: 2.49e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 48/60 | Loss: 2.48e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 49/60 | Loss: 2.46e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 50/60 | Loss: 2.45e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 51/60 | Loss: 2.44e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 52/60 | Loss: 2.42e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 53/60 | Loss: 2.41e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 54/60 | Loss: 2.40e+04 | Sp: 0.1% | Norm G: 4.09e+02
+Iter 55/60 | Loss: 2.39e+04 | Sp: 0.1% | Norm G: 4.10e+02
+Iter 56/60 | Loss: 2.38e+04 | Sp: 0.1% | Norm G: 4.10e+02
+Iter 57/60 | Loss: 2.37e+04 | Sp: 0.1% | Norm G: 4.10e+02
+Iter 58/60 | Loss: 2.36e+04 | Sp: 0.1% | Norm G: 4.10e+02
+Iter 59/60 | Loss: 2.35e+04 | Sp: 0.1% | Norm G: 4.10e+02
+Iter 60/60 | Loss: 2.34e+04 | Sp: 0.1% | Norm G: 4.10e+02
+  {'PSNR': 19.611624641406685, 'SAM': 51.06261191703307, 'ERGAS': 3.119575922913188, 'q2n': 0.5610305402658029, 'sparsity_G': 0.1353797717434081, 'time_s': 2212.847898244858}
+
+ok : results_protocol_fz.json
+
+Rappel tableau équipe (G-STEREO-1, Pavia) : PSNR 32.13 | SAM 8.27 | Q2n 0.59 | ERGAS 0.78
+
+ok : results_protocol_fz.json
+Terminé.

@@ -1,0 +1,57 @@
+﻿Connexion SSH à ritchie...
+Téléversé : protocol_fz.py
+Téléversé : run_linear_hyperbench.py
+Téléversé : linear_tucker_torch.py
+Téléversé : v0_lineaire_baseline_tucker_als.py
+[ADMISSION RULE] Modify resource description with type constraints
+[ADMISSION RULE] Automatically add constraint to go on nodes permitted for the user.
+OAR_JOB_ID=7602
+
+Job 7602 soumis. Surveillance...
+........
+Job terminé (T).
+
+=== LOG ===
+    it 03000 | loss 1.7249e+04 | sp(G) 66.9%
+    it 03050 | loss 1.7264e+04 | sp(G) 66.3%
+    it 03100 | loss 1.7246e+04 | sp(G) 67.2%
+    it 03150 | loss 1.7260e+04 | sp(G) 67.5%
+    it 03200 | loss 1.7245e+04 | sp(G) 67.4%
+    it 03250 | loss 1.7258e+04 | sp(G) 67.8%
+    it 03300 | loss 1.7241e+04 | sp(G) 68.1%
+    it 03350 | loss 1.7257e+04 | sp(G) 67.7%
+    it 03400 | loss 1.7241e+04 | sp(G) 68.0%
+    it 03450 | loss 1.7253e+04 | sp(G) 68.9%
+    it 03500 | loss 1.7240e+04 | sp(G) 68.8%
+    it 03550 | loss 1.7254e+04 | sp(G) 68.7%
+    it 03600 | loss 1.7234e+04 | sp(G) 69.1%
+    it 03650 | loss 1.7250e+04 | sp(G) 69.6%
+    it 03700 | loss 1.7238e+04 | sp(G) 69.5%
+    it 03750 | loss 1.7249e+04 | sp(G) 69.7%
+    it 03800 | loss 1.7232e+04 | sp(G) 70.0%
+    it 03850 | loss 1.7246e+04 | sp(G) 71.3%
+    it 03900 | loss 1.7232e+04 | sp(G) 70.3%
+    it 03950 | loss 1.7245e+04 | sp(G) 71.7%
+    it 04000 | loss 1.7229e+04 | sp(G) 70.7%
+  {'PSNR': 26.559329053737354, 'SAM': 15.834352570616362, 'ERGAS': 1.3852278992857099, 'q2n': 0.5667506770600537, 'sparsity_G': 36.0703706741333, 'time_s': 22.185258150100708}
+
+=== ALS-Lipschitz v0 multi-flux ===
+  Beta calculé = 6.7958e-05 (norm_G=3.6697e+02, beta_factor=0.01)
+Iter 01/10 | Loss: 1.05e+05 | Sp: 0.0% | Norm G: 3.67e+02
+Iter 02/10 | Loss: 9.37e+04 | Sp: 0.0% | Norm G: 3.68e+02
+Iter 03/10 | Loss: 8.47e+04 | Sp: 0.0% | Norm G: 3.68e+02
+Iter 04/10 | Loss: 7.73e+04 | Sp: 0.0% | Norm G: 3.69e+02
+Iter 05/10 | Loss: 7.12e+04 | Sp: 0.0% | Norm G: 3.69e+02
+Iter 06/10 | Loss: 6.60e+04 | Sp: 0.0% | Norm G: 3.70e+02
+Iter 07/10 | Loss: 6.17e+04 | Sp: 0.0% | Norm G: 3.70e+02
+Iter 08/10 | Loss: 5.80e+04 | Sp: 0.0% | Norm G: 3.71e+02
+Iter 09/10 | Loss: 5.48e+04 | Sp: 0.0% | Norm G: 3.71e+02
+Iter 10/10 | Loss: 5.21e+04 | Sp: 0.0% | Norm G: 3.72e+02
+  {'PSNR': 19.160953855290657, 'SAM': 53.14596794940774, 'ERGAS': 3.276420009913691, 'q2n': 0.44725433253657493, 'sparsity_G': 0.0, 'time_s': 170.15343594551086}
+
+ok : results_protocol_fz.json
+
+Rappel tableau équipe (G-STEREO-1, Pavia) : PSNR 32.13 | SAM 8.27 | Q2n 0.59 | ERGAS 0.78
+
+ok : results_protocol_fz.json
+Terminé.

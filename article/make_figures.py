@@ -18,7 +18,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from paper_common import load_paviau
+from scripts_article.paper_common import load_paviau
 
 RGB = [60, 30, 2]   # bandes pour le composé pseudo-RGB (convention du projet)
 

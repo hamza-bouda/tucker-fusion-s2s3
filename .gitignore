@@ -9,6 +9,7 @@ __pycache__/
 
 # Données lourdes et binaires de sortie
 data/
+outputs/
 *.mat
 *.tif
 *.pth

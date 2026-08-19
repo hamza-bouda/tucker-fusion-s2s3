@@ -24,8 +24,8 @@ L'opérateur d'observation applique ensuite :
 
 1. la SRF du capteur pour projeter les 21 bandes latentes vers ses bandes observées ;
 2. la PSF officielle S2A, bande par bande, sur la grille native correspondante ;
-3. un petit résidu non linéaire borné, régularisé pour empêcher le contournement du
-   cœur commun.
+3. un résidu non linéaire borné, guidé par S2 à 10 m et régularisé pour préserver les
+   détails sans contourner le cœur commun.
 
 OLCI utilise une PSF identité dans cette première expérience : elle indique seulement
 qu'aucun flou additionnel n'est supposé au-delà du produit natif. Une PSF OLCI
@@ -51,8 +51,14 @@ entiers sont effectués ; aucune image n'est agrandie ou réduite.
 
 La fonction objectif combine cohérence des observations natives, SAM OLCI,
 parcimonie du cœur, orthogonalité du dictionnaire, pénalité des résidus et lissage
-spectral faible. Le meilleur checkpoint est choisi sur des fenêtres géographiques de
-validation exclues de l'entraînement.
+spectral faible. La configuration par défaut privilégie S2 à 10 m, utilise les rangs
+Tucker `(20, 20, 16)` et arrête automatiquement l'entraînement après 30 époques sans
+amélioration de validation. Le meilleur checkpoint est choisi sur des fenêtres
+géographiques de validation exclues de l'entraînement.
+
+Les paramètres les plus importants sont `--ranks 20 20 16`,
+`--residual-scale 0.10`, `--core-weight 0.005`, `--residual-weight 0.001` et
+`--early-stopping-patience 30`.
 
 ## Évaluation
 

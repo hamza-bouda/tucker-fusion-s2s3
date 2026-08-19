@@ -120,6 +120,9 @@ class NativeSparseTuckerAE(nn.Module):
         attention_layers: int = 3,
         output_max: float = 1.5,
         anchor_sensor: str | None = None,
+        residual_scale: float = 0.05,
+        shrink_init: float = 2e-2,
+        shrink_max: float = 2.5e-1,
     ):
         super().__init__()
         self.sensor_specs = {sensor.name: sensor for sensor in sensors}
@@ -127,6 +130,7 @@ class NativeSparseTuckerAE(nn.Module):
         self.ranks = tuple(ranks)
         self.target_bands = int(target_bands)
         self.output_max = float(output_max)
+        self.residual_scale = float(residual_scale)
         self.anchor_sensor = anchor_sensor or sensors[0].name
         if self.anchor_sensor not in self.sensor_specs:
             raise ValueError(f"Unknown anchor sensor: {self.anchor_sensor}")
@@ -148,7 +152,7 @@ class NativeSparseTuckerAE(nn.Module):
             CrossAttentionBlock(width, heads) for _ in range(attention_layers)
         ])
         self.core_projection = nn.Linear(width, rank_s)
-        self.shrink = SoftShrink(rank_s)
+        self.shrink = SoftShrink(rank_s, init=shrink_init, maximum=shrink_max)
 
         self.row_basis = CoordinateBasis(rank_x)
         self.column_basis = CoordinateBasis(rank_y)
@@ -265,7 +269,8 @@ class NativeSparseTuckerAE(nn.Module):
         linear = torch.einsum("bijk,bhi,bwj,ck->bchw", core, row, column, spectral)
         base = self.output_max * torch.sigmoid(linear + self.output_biases[sensor])
         residual = self.refiners[sensor](torch.cat((base, input_image), dim=1))
-        corrected = torch.clamp(base + 0.05 * torch.tanh(residual), 0.0, self.output_max)
+        corrected = torch.clamp(base + self.residual_scale * torch.tanh(residual),
+                                0.0, self.output_max)
         prediction = self._apply_psf(corrected, sensor)
         return prediction, residual
 
@@ -299,7 +304,7 @@ class NativeSparseTuckerAE(nn.Module):
         linear_fused = torch.einsum("bijk,bhi,bwj,ck->bchw", core, row, column, spectral)
         fused_base = self.output_max * torch.sigmoid(linear_fused + self.fusion_bias)
         fused_residual = self.fusion_refiner(torch.cat((fused_base, anchor), dim=1))
-        fused = torch.clamp(fused_base + 0.05 * torch.tanh(fused_residual),
+        fused = torch.clamp(fused_base + self.residual_scale * torch.tanh(fused_residual),
                             0.0, self.output_max)
         return {
             "fused": fused,

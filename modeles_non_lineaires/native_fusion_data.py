@@ -52,6 +52,9 @@ def model_from_data(
     heads: int = 4,
     attention_layers: int = 3,
     output_max: float = 1.5,
+    residual_scale: float = 0.05,
+    shrink_init: float = 2e-2,
+    shrink_max: float = 2.5e-1,
 ) -> NativeSparseTuckerAE:
     responses = {name: data[f"response_{name}"] for name in SENSOR_ORDER}
     psfs = {name: data[f"psf_{name}"] for name in SENSOR_ORDER if f"psf_{name}" in data}
@@ -66,6 +69,9 @@ def model_from_data(
         attention_layers=attention_layers,
         output_max=output_max,
         anchor_sensor="s2_10",
+        residual_scale=residual_scale,
+        shrink_init=shrink_init,
+        shrink_max=shrink_max,
     )
     # Initialise each radiometric bias from its native observation mean. This
     # keeps the first forward pass in the physical reflectance range while all
@@ -89,6 +95,8 @@ def model_metadata(model: NativeSparseTuckerAE) -> dict:
         "target_bands": model.target_bands,
         "output_max": model.output_max,
         "anchor_sensor": model.anchor_sensor,
+        "residual_scale": model.residual_scale,
+        "shrink_max": model.shrink.maximum,
     }
 
 

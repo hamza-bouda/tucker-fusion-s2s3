@@ -33,7 +33,7 @@ from modeles_non_lineaires.native_fusion_data import (
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA = ROOT / "data" / "training" / "andorra_20180118_native_toa.npz"
 DEFAULT_OUTPUT = ROOT / "outputs" / "native_sparse_tucker_andorra"
-OBSERVATION_WEIGHTS = {"s2_10": 1.0, "s2_20": 1.0, "s2_60": 0.8, "olci": 2.0}
+OBSERVATION_WEIGHTS = {"s2_10": 1.8, "s2_20": 1.2, "s2_60": 0.6, "olci": 1.8}
 
 
 def seed_everything(seed: int) -> None:
@@ -52,15 +52,15 @@ def masked_charbonnier(prediction: torch.Tensor, target: torch.Tensor,
 
 
 def loss_terms(output: dict, batch: dict, model: torch.nn.Module,
-               epoch: int, warmup_epochs: int) -> dict[str, torch.Tensor]:
+               epoch: int, warmup_epochs: int, weights: dict[str, float]) -> dict[str, torch.Tensor]:
     observations = []
     terms: dict[str, torch.Tensor] = {}
     for sensor in SENSOR_ORDER:
         value = masked_charbonnier(output["native"][sensor], batch["targets"][sensor],
                                    batch["masks"][sensor])
         terms[f"reconstruction_{sensor}"] = value
-        observations.append(OBSERVATION_WEIGHTS[sensor] * value)
-    reconstruction = torch.stack(observations).sum() / sum(OBSERVATION_WEIGHTS.values())
+        observations.append(weights[sensor] * value)
+    reconstruction = torch.stack(observations).sum() / sum(weights.values())
     terms["reconstruction"] = reconstruction
 
     terms["sam_olci"] = sam(output["native"]["olci"], batch["targets"]["olci"],
@@ -74,12 +74,12 @@ def loss_terms(output: dict, batch: dict, model: torch.nn.Module,
 
     regularisation_ramp = min(1.0, (epoch + 1) / max(warmup_epochs, 1))
     total = reconstruction
-    total = total + 2e-4 * terms["sam_olci"]
+    total = total + weights["sam"] * terms["sam_olci"]
     total = total + regularisation_ramp * (
-        2e-3 * terms["core_l1"]
-        + 1e-3 * terms["dictionary"]
-        + 1e-4 * terms["residual"]
-        + 2e-4 * terms["spectral_smoothness"]
+        weights["core"] * terms["core_l1"]
+        + weights["dictionary"] * terms["dictionary"]
+        + weights["residual"] * terms["residual"]
+        + weights["spectral"] * terms["spectral_smoothness"]
     )
     terms["total"] = total
     return terms
@@ -87,7 +87,8 @@ def loss_terms(output: dict, batch: dict, model: torch.nn.Module,
 
 def run_epoch(model: torch.nn.Module, loader: DataLoader, device: torch.device,
               epoch: int, warmup_epochs: int, optimizer=None, scaler=None,
-              max_grad_norm: float = 1.0) -> dict[str, float]:
+              max_grad_norm: float = 1.0,
+              loss_weights: dict[str, float] | None = None) -> dict[str, float]:
     training = optimizer is not None
     model.train(training)
     accumulated: dict[str, float] = {}
@@ -101,7 +102,7 @@ def run_epoch(model: torch.nn.Module, loader: DataLoader, device: torch.device,
                            else nullcontext())
             with amp_context:
                 output = model(batch["inputs"], batch["coordinates"])
-                terms = loss_terms(output, batch, model, epoch, warmup_epochs)
+                terms = loss_terms(output, batch, model, epoch, warmup_epochs, loss_weights)
             if training:
                 scaler.scale(terms["total"]).backward()
                 scaler.unscale_(optimizer)
@@ -142,7 +143,7 @@ def export_full_fusion(model: torch.nn.Module, data: dict[str, np.ndarray],
 
 
 def save_checkpoint(path: Path, model: torch.nn.Module, optimizer, scheduler,
-                    epoch: int, best_validation: float, args: argparse.Namespace,
+                    epoch: int, best_validation: float, best_epoch: int, args: argparse.Namespace,
                     history: list[dict]) -> None:
     serializable_arguments = {
         key: str(value) if isinstance(value, Path) else value
@@ -154,6 +155,7 @@ def save_checkpoint(path: Path, model: torch.nn.Module, optimizer, scheduler,
         "scheduler_state": scheduler.state_dict(),
         "epoch": epoch,
         "best_validation": best_validation,
+        "best_epoch": best_epoch,
         "arguments": serializable_arguments,
         "model_metadata": model_metadata(model),
         "history": history,
@@ -164,18 +166,32 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=DEFAULT_DATA)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--epochs", type=int, default=250)
+    parser.add_argument("--epochs", type=int, default=300)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--patch-10m", type=int, default=120)
     parser.add_argument("--stride-10m", type=int, default=120)
     parser.add_argument("--workers", type=int, default=2)
-    parser.add_argument("--learning-rate", type=float, default=2e-4)
+    parser.add_argument("--learning-rate", type=float, default=1.5e-4)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--warmup-epochs", type=int, default=20)
-    parser.add_argument("--ranks", type=int, nargs=3, default=(12, 12, 16))
+    parser.add_argument("--ranks", type=int, nargs=3, default=(20, 20, 16))
     parser.add_argument("--width", type=int, default=96)
     parser.add_argument("--heads", type=int, default=4)
     parser.add_argument("--attention-layers", type=int, default=3)
+    parser.add_argument("--residual-scale", type=float, default=0.10)
+    parser.add_argument("--shrink-init", type=float, default=0.05)
+    parser.add_argument("--shrink-max", type=float, default=0.35)
+    parser.add_argument("--s2-10-weight", type=float, default=OBSERVATION_WEIGHTS["s2_10"])
+    parser.add_argument("--s2-20-weight", type=float, default=OBSERVATION_WEIGHTS["s2_20"])
+    parser.add_argument("--s2-60-weight", type=float, default=OBSERVATION_WEIGHTS["s2_60"])
+    parser.add_argument("--olci-weight", type=float, default=OBSERVATION_WEIGHTS["olci"])
+    parser.add_argument("--sam-weight", type=float, default=2e-4)
+    parser.add_argument("--core-weight", type=float, default=5e-3)
+    parser.add_argument("--dictionary-weight", type=float, default=1e-3)
+    parser.add_argument("--residual-weight", type=float, default=1e-3)
+    parser.add_argument("--spectral-weight", type=float, default=5e-4)
+    parser.add_argument("--early-stopping-patience", type=int, default=30)
+    parser.add_argument("--early-stopping-min-delta", type=float, default=1e-4)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--no-export-fused", action="store_true")
@@ -188,6 +204,13 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data = load_native_archive(args.data)
+    loss_weights = {
+        "s2_10": args.s2_10_weight, "s2_20": args.s2_20_weight,
+        "s2_60": args.s2_60_weight, "olci": args.olci_weight,
+        "sam": args.sam_weight, "core": args.core_weight,
+        "dictionary": args.dictionary_weight, "residual": args.residual_weight,
+        "spectral": args.spectral_weight,
+    }
     train_data = NativePatchDataset(data, args.patch_10m, args.stride_10m, "train")
     validation_data = NativePatchDataset(data, args.patch_10m, args.stride_10m,
                                          "validation")
@@ -199,13 +222,15 @@ def main() -> None:
                                    num_workers=args.workers, pin_memory=device.type == "cuda",
                                    persistent_workers=args.workers > 0)
     model = model_from_data(data, tuple(args.ranks), args.width, args.heads,
-                            args.attention_layers).to(device)
+                            args.attention_layers, residual_scale=args.residual_scale,
+                            shrink_init=args.shrink_init,
+                            shrink_max=args.shrink_max).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate,
                                   weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs,
                                                             eta_min=args.learning_rate / 20)
     scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
-    start_epoch, best_validation, history = 0, math.inf, []
+    start_epoch, best_validation, best_epoch, history = 0, math.inf, 0, []
     if args.resume:
         checkpoint = torch.load(args.resume, map_location=device, weights_only=False)
         model.load_state_dict(checkpoint["model_state"])
@@ -214,6 +239,9 @@ def main() -> None:
         start_epoch = int(checkpoint["epoch"]) + 1
         best_validation = float(checkpoint["best_validation"])
         history = list(checkpoint.get("history", []))
+        best_epoch = int(checkpoint.get("best_epoch", 0))
+        if best_epoch == 0 and history:
+            best_epoch = min(history, key=lambda item: item["validation"]["total"])["epoch"]
 
     run_info = {
         "device": str(device),
@@ -223,6 +251,7 @@ def main() -> None:
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
         "data": str(args.data.resolve()),
         "no_observed_image_resampling": True,
+        "loss_weights": loss_weights,
     }
     print(json.dumps(run_info), flush=True)
     (args.output / "run_config.json").write_text(
@@ -232,9 +261,9 @@ def main() -> None:
     started = time.time()
     for epoch in range(start_epoch, args.epochs):
         train_metrics = run_epoch(model, train_loader, device, epoch, args.warmup_epochs,
-                                  optimizer, scaler)
+                                  optimizer, scaler, loss_weights=loss_weights)
         validation_metrics = run_epoch(model, validation_loader, device, epoch,
-                                       args.warmup_epochs)
+                                       args.warmup_epochs, loss_weights=loss_weights)
         scheduler.step()
         record = {
             "epoch": epoch + 1,
@@ -245,14 +274,20 @@ def main() -> None:
         }
         history.append(record)
         print(json.dumps(record), flush=True)
-        save_checkpoint(args.output / "last_checkpoint.pt", model, optimizer, scheduler,
-                        epoch, best_validation, args, history)
-        if validation_metrics["total"] < best_validation:
+        if validation_metrics["total"] < best_validation - args.early_stopping_min_delta:
             best_validation = validation_metrics["total"]
+            best_epoch = epoch + 1
             save_checkpoint(args.output / "best_checkpoint.pt", model, optimizer, scheduler,
-                            epoch, best_validation, args, history)
+                            epoch, best_validation, best_epoch, args, history)
+        save_checkpoint(args.output / "last_checkpoint.pt", model, optimizer, scheduler,
+                        epoch, best_validation, best_epoch, args, history)
         (args.output / "history.json").write_text(json.dumps(history, indent=2),
                                                    encoding="utf-8")
+        if epoch + 1 - best_epoch >= args.early_stopping_patience:
+            print(json.dumps({"status": "early_stopping", "epoch": epoch + 1,
+                              "best_epoch": best_epoch,
+                              "best_validation": best_validation}), flush=True)
+            break
 
     best = torch.load(args.output / "best_checkpoint.pt", map_location=device,
                       weights_only=False)
@@ -260,7 +295,8 @@ def main() -> None:
     if not args.no_export_fused:
         export_full_fusion(model, data, device, args.output / "fused_cube_float16.npz",
                            args.patch_10m, args.batch_size, args.workers)
-    print(json.dumps({"status": "complete", "best_validation": best_validation,
+    print(json.dumps({"status": "complete", "best_epoch": best_epoch,
+                      "best_validation": best_validation,
                       "output": str(args.output.resolve())}), flush=True)
 
 

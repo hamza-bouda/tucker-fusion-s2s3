@@ -101,6 +101,9 @@ def main() -> None:
         width=int(training_args.get("width", 96)),
         heads=int(training_args.get("heads", 4)),
         attention_layers=int(training_args.get("attention_layers", 3)),
+        residual_scale=float(training_args.get("residual_scale", 0.05)),
+        shrink_init=float(training_args.get("shrink_init", 0.02)),
+        shrink_max=float(training_args.get("shrink_max", 0.25)),
     ).to(device)
     model.load_state_dict(checkpoint["model_state"])
     model.eval()

@@ -1,0 +1,47 @@
+{
+  "checkpoint": "/nfs/home/lisic/hbouda/tucker_fusion_native/outputs/native_sparse_tucker_andorra/best_checkpoint.pt",
+  "data": "/nfs/home/lisic/hbouda/tucker_fusion_native/data/training/andorra_20180118_native_toa.npz",
+  "device": "cuda",
+  "split": "validation",
+  "patches": 20,
+  "native_consistency": {
+    "s2_10": {
+      "rmse": 0.3708033263683319,
+      "psnr_db": 12.248798942565918,
+      "sam_deg": 4.689398717880249,
+      "ergas": 34.20820541381836,
+      "ssim": 0.5171488583087921,
+      "uiqi": 0.41347408294677734
+    },
+    "s2_20": {
+      "rmse": 0.38599933981895446,
+      "psnr_db": 11.88221321105957,
+      "sam_deg": 2.0608819246292116,
+      "ergas": 34.91518058776855,
+      "ssim": 0.49448617100715636,
+      "uiqi": 0.40548365712165835
+    },
+    "s2_60": {
+      "rmse": 0.2894499242305756,
+      "psnr_db": 14.422212409973145,
+      "sam_deg": 5.422554206848145,
+      "ergas": 32.42606163024902,
+      "ssim": 0.5905710458755493,
+      "uiqi": 0.6755233764648437
+    },
+    "olci": {
+      "rmse": 0.2705593049526215,
+      "psnr_db": 14.93855686187744,
+      "sam_deg": 9.103196144104004,
+      "ergas": 38.107398986816406,
+      "ssim": 0.8864118218421936,
+      "uiqi": 0.6598657369613647
+    }
+  },
+  "diagnostics": {
+    "spectral_second_difference_l1": 0.16141906529664993,
+    "spatial_total_variation_l1": 0.0009862149367108942,
+    "sparse_core_active_fraction_gt_1e-4": 0.8518663167953491
+  },
+  "interpretation": "native metrics are same-grid observation consistency; no resizing"
+}
